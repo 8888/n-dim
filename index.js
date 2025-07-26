@@ -3,7 +3,7 @@ const ctx = canvas.getContext('2d');
 
 let viewConfig = {
   // static
-  map: { spaces: 10 },
+  map: { spaces: 10, clearMargin: 5 },
   // dynamic
   infoPanel: { x: 0, y: 0, width: 0, height: 0 },
   xyPlane: { x: 0, y: 0, width: 0, height: 0, spacing: 0 },
@@ -20,6 +20,8 @@ const state = {
   infoPanel: {
     dirty: true,
     fps: 0,
+    mouseX: 0,
+    mouseY: 0,
   },
   player: {
     x: Math.round(viewConfig.map.spaces / 2),
@@ -71,24 +73,51 @@ const handleMove = (key) => {
   }
 }
 
+const handleClick = (event) => {
+  state.infoPanel.mouseX = event.clientX;
+  state.infoPanel.mouseY = event.clientY;
+  state.infoPanel.dirty = true;
+};
+
 const init = () => {
   window.addEventListener('resize', resizeCanvas);
   window.addEventListener('keydown', event => handleMove(event.key));
+  window.addEventListener('click', event => handleClick(event));
   resizeCanvas();
 
+  // remember x y is starting location, width height is distance from x y, not location of the end point
   viewConfig = {
     ...viewConfig,
     infoPanel: { x: 0, y: 0, width: canvas.width * 1, height: canvas.height * .05 },
     get xyPlane() {
       return {
         x: 0,
-        y: this.infoPanel.height,
+        y: this.infoPanel.y + this.infoPanel.height,
         width: canvas.width * 1,
-        height: this.infoPanel.height + (canvas.height * .3),
-        spacing: (this.infoPanel.height + (canvas.height * .3) - this.infoPanel.height) / 12, // (height - y) / 12 to get 12 equal spaces filling this whole area
+        height: canvas.height * .3,
+        spacing: (canvas.height * .3) / 12, // height / 12 to get 12 equal spaces filling this whole area
       }
     }
   }
+
+  console.log(viewConfig);
+
+  // draw area borders that won't need repainting
+  const infoBorder = {
+    xStart: viewConfig.infoPanel.x,
+    yStart: viewConfig.infoPanel.height,
+    xEnd: viewConfig.infoPanel.x + viewConfig.infoPanel.width,
+    yEnd: viewConfig.infoPanel.height,
+  }
+
+  const xyBorder = {
+    xStart: viewConfig.xyPlane.x,
+    yStart: viewConfig.infoPanel.height + viewConfig.xyPlane.height,
+    xEnd: viewConfig.xyPlane.x + viewConfig.xyPlane.width,
+    yEnd: viewConfig.infoPanel.height + viewConfig.xyPlane.height,
+  }
+
+  drawLines([infoBorder, xyBorder], colors.black, 2);
 };
 
 const update = (delta) => {
@@ -103,23 +132,22 @@ const update = (delta) => {
 const displayInfoPanel = () => {
   if (!state.infoPanel.dirty) return;
 
-  ctx.clearRect(viewConfig.infoPanel.x, viewConfig.infoPanel.y, viewConfig.infoPanel.width, viewConfig.infoPanel.height);
+  // indent all clears to avoid aliasing border lines due to thickness
+  ctx.clearRect(
+    viewConfig.infoPanel.x + viewConfig.map.clearMargin,
+    viewConfig.infoPanel.y + viewConfig.map.clearMargin,
+    viewConfig.infoPanel.width - viewConfig.map.clearMargin * 2,
+    viewConfig.infoPanel.height - viewConfig.map.clearMargin * 2
+  );
 
-  const divider = {
-    xStart: viewConfig.infoPanel.x,
-    yStart: viewConfig.infoPanel.height,
-    xEnd: viewConfig.infoPanel.width,
-    yEnd: viewConfig.infoPanel.height,
-  }
-
-  drawLines([divider], colors.black, 2);
-
-  const fpsStart = 10;
-  const coordsStart = fpsStart + 150;
+  const fpsStart = 20;
+  const coordsStart = fpsStart + 140;
+  const cursorStart = coordsStart + 140;
   ctx.fillStyle = colors.black;
-  ctx.font = `${(viewConfig.infoPanel.height - viewConfig.infoPanel.y) / 2}px Verdana`;
+  ctx.font = `${(viewConfig.infoPanel.height - viewConfig.infoPanel.y) * .4}px Verdana`;
   ctx.fillText(`${state.infoPanel.fps} FPS`, viewConfig.infoPanel.x + fpsStart, viewConfig.infoPanel.y + (viewConfig.infoPanel.height / 2));
   ctx.fillText(`[ x: ${state.player.x}, y: ${state.player.y} ]`, viewConfig.infoPanel.x + coordsStart, viewConfig.infoPanel.y + (viewConfig.infoPanel.height / 2));
+  ctx.fillText(`cursor: (x: ${state.infoPanel.mouseX}, y: ${state.infoPanel.mouseY})`, viewConfig.infoPanel.x + cursorStart, viewConfig.infoPanel.y + (viewConfig.infoPanel.height / 2));
 
   state.infoPanel.dirty = false;
 };
@@ -127,16 +155,13 @@ const displayInfoPanel = () => {
 const displayxyPlane = () => {
   if (!state.xyPlane.dirty) return;
 
-  ctx.clearRect(viewConfig.xyPlane.x, viewConfig.xyPlane.y, viewConfig.xyPlane.width, viewConfig.xyPlane.height);
-
-  const divider = {
-    xStart: viewConfig.xyPlane.x,
-    yStart: viewConfig.xyPlane.height,
-    xEnd: viewConfig.xyPlane.width,
-    yEnd: viewConfig.xyPlane.height,
-  }
-
-  drawLines([divider], colors.black, 2);
+  // indent all clears to avoid aliasing border lines due to thickness
+  ctx.clearRect(
+    viewConfig.xyPlane.x + viewConfig.map.clearMargin,
+    viewConfig.xyPlane.y + viewConfig.map.clearMargin,
+    viewConfig.xyPlane.width - viewConfig.map.clearMargin * 2,
+    viewConfig.xyPlane.height - viewConfig.map.clearMargin * 2
+  );
 
   const leftMargin = viewConfig.xyPlane.spacing;
   const topMargin = viewConfig.xyPlane.spacing;

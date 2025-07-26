@@ -1,4 +1,3 @@
-// Get the canvas and context
 const canvas = document.getElementById('main-canvas');
 const ctx = canvas.getContext('2d');
 
@@ -93,9 +92,8 @@ const init = () => {
 };
 
 const update = (delta) => {
-  const frameDelta = delta; // time since last update in milliseconds
-
-  const updatedFps = Math.round(1000 / frameDelta);
+  // time since last update in milliseconds
+  const updatedFps = Math.round(1000 / delta);
   if (state.infoPanel.fps != updatedFps) {
     state.infoPanel.fps = updatedFps;
     state.infoPanel.dirty = true;

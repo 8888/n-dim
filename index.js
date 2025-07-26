@@ -196,6 +196,7 @@ const displayxyPlane = () => {
   );
   ctx.fill();
 
+  //  y axis
   const verticle = {
     xStart: viewConfig.xyPlane.x + (leftMargin * 2) + viewConfig.map.spaces * spaceSize,
     yStart: viewConfig.xyPlane.y + topMargin + spaceSize * viewConfig.map.spaces,
@@ -205,6 +206,11 @@ const displayxyPlane = () => {
 
   drawLines([verticle], colors.green, 1);
 
+  ctx.fillStyle = colors.green;
+  ctx.font = `${spaceSize * .75}px Verdana`;
+  ctx.fillText(`y: ${state.player.y}`, verticle.xEnd + spaceSize/2, verticle.yStart - spaceSize * 2.5);
+
+  // x axis
   const horizontal = {
     xStart: viewConfig.xyPlane.x + (leftMargin * 2) + viewConfig.map.spaces * spaceSize,
     yStart: viewConfig.xyPlane.y + topMargin + spaceSize * viewConfig.map.spaces,
@@ -213,6 +219,10 @@ const displayxyPlane = () => {
   };
 
   drawLines([horizontal], colors.red, 1);
+
+  ctx.fillStyle = colors.red;
+  ctx.font = `${spaceSize * .75}px Verdana`;
+  ctx.fillText(`x: ${state.player.x}`, horizontal.xStart + spaceSize * 2, horizontal.yEnd - spaceSize/2);
 
   state.xyPlane.dirty = false;
 }

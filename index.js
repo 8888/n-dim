@@ -56,27 +56,27 @@ const resizeCanvas = () => {
 }
 
 const handleMove = (key) => {
-  if ((key === 'ArrowLeft' || key === 'q') && state.player.x > 0) {
+  if (key === 'a' && state.player.x > 0) {
     state.player.x--;
     state.xyPlane.dirty = true;
     state.infoPanel.dirty = true
-  } else if ((key === 'ArrowRight' || key === 'a') && state.player.x < viewConfig.map.spaces - 1) {
+  } else if (key === 'q' && state.player.x < viewConfig.map.spaces - 1) {
     state.player.x++;
     state.xyPlane.dirty = true;
     state.infoPanel.dirty = true;
-  } else if ((key === 'ArrowUp' || key === 'w') && state.player.y > 0) {
+  } else if (key === 's' && state.player.y > 0) {
     state.player.y--;
     state.xyPlane.dirty = true;
     state.infoPanel.dirty = true;
-  } else if ((key === 'ArrowDown' || key === 's') && state.player.y < viewConfig.map.spaces - 1) {
+  } else if (key === 'w' && state.player.y < viewConfig.map.spaces - 1) {
     state.player.y++;
     state.xyPlane.dirty = true;
     state.infoPanel.dirty = true;
-  } else if ( key === 'e' && state.player.z > 0) {
+  } else if ( key === 'd' && state.player.z > 0) {
     state.player.z--;
     // set z view dirty
     state.infoPanel.dirty = true;
-  } else if (key === 'd' && state.player.z < viewConfig.map.spaces - 1) {
+  } else if (key === 'e' && state.player.z < viewConfig.map.spaces - 1) {
     state.player.z++;
     // set z view dirty
     state.infoPanel.dirty = true;
@@ -103,9 +103,9 @@ const init = () => {
       return {
         x: 0,
         y: this.infoPanel.y + this.infoPanel.height,
-        width: canvas.width * 1,
-        height: canvas.height * .3,
-        spacing: (canvas.height * .3) / (this.map.spaces + 2), // fit the board plus a margin on each side equal to the sapce size
+        width: canvas.width / 3,
+        height: canvas.height / 3,
+        spacing: (canvas.height / 3) / (this.map.spaces + 2), // fit the board plus a margin on each side equal to the space size
       }
     }
   }
@@ -195,11 +195,15 @@ const displayxyPlane = () => {
 
   drawLines(grid, colors.black, 1);
 
+  // x is correct with zero left
+  // invert y to have zero on bottom
+  const xLoc = state.player.x;
+  const yLoc = viewConfig.map.spaces - 1 - state.player.y;
   ctx.fillStyle = colors.blue;
   ctx.beginPath();
   ctx.arc(
-    viewConfig.xyPlane.x + leftMargin + (spaceSize / 2) + (spaceSize * state.player.x),
-    viewConfig.xyPlane.y + topMargin + (spaceSize / 2) + (spaceSize * state.player.y),
+    viewConfig.xyPlane.x + leftMargin + (spaceSize / 2) + (spaceSize * xLoc),
+    viewConfig.xyPlane.y + topMargin + (spaceSize / 2) + (spaceSize * yLoc),
     (spaceSize / 2) - 2,
     0,
     2 * Math.PI,

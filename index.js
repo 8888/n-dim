@@ -3,7 +3,7 @@ const ctx = canvas.getContext('2d');
 
 let viewConfig = {
   // static
-  map: { spaces: 10, clearMargin: 5 },
+  map: { spaces: 11, clearMargin: 5 },
   // dynamic
   infoPanel: { x: 0, y: 0, width: 0, height: 0 },
   xyPlane: { x: 0, y: 0, width: 0, height: 0, spacing: 0 },
@@ -14,6 +14,7 @@ const colors = {
   blue: '#0000ff',
   green: '#2eb52a',
   red: '#993000',
+  purple: '#9858b8',
 };
 
 const state = {
@@ -24,8 +25,9 @@ const state = {
     mouseY: 0,
   },
   player: {
-    x: Math.round(viewConfig.map.spaces / 2),
-    y: Math.round(viewConfig.map.spaces / 2),
+    x: Math.floor(viewConfig.map.spaces / 2),
+    y: Math.floor(viewConfig.map.spaces / 2),
+    z: Math.floor(viewConfig.map.spaces / 2),
   },
   xyPlane: {
     dirty: true,
@@ -70,6 +72,14 @@ const handleMove = (key) => {
     state.player.y++;
     state.xyPlane.dirty = true;
     state.infoPanel.dirty = true;
+  } else if ( key === 'e' && state.player.z > 0) {
+    state.player.z--;
+    // set z view dirty
+    state.infoPanel.dirty = true;
+  } else if (key === 'd' && state.player.z < viewConfig.map.spaces - 1) {
+    state.player.z++;
+    // set z view dirty
+    state.infoPanel.dirty = true;
   }
 }
 
@@ -95,7 +105,7 @@ const init = () => {
         y: this.infoPanel.y + this.infoPanel.height,
         width: canvas.width * 1,
         height: canvas.height * .3,
-        spacing: (canvas.height * .3) / 12, // height / 12 to get 12 equal spaces filling this whole area
+        spacing: (canvas.height * .3) / (this.map.spaces + 2), // fit the board plus a margin on each side equal to the sapce size
       }
     }
   }
@@ -142,11 +152,11 @@ const displayInfoPanel = () => {
 
   const fpsStart = 20;
   const coordsStart = fpsStart + 140;
-  const cursorStart = coordsStart + 140;
+  const cursorStart = coordsStart + 200;
   ctx.fillStyle = colors.black;
   ctx.font = `${(viewConfig.infoPanel.height - viewConfig.infoPanel.y) * .4}px Verdana`;
   ctx.fillText(`${state.infoPanel.fps} FPS`, viewConfig.infoPanel.x + fpsStart, viewConfig.infoPanel.y + (viewConfig.infoPanel.height / 2));
-  ctx.fillText(`[ x: ${state.player.x}, y: ${state.player.y} ]`, viewConfig.infoPanel.x + coordsStart, viewConfig.infoPanel.y + (viewConfig.infoPanel.height / 2));
+  ctx.fillText(`[ x: ${state.player.x}, y: ${state.player.y}, z: ${state.player.z} ]`, viewConfig.infoPanel.x + coordsStart, viewConfig.infoPanel.y + (viewConfig.infoPanel.height / 2));
   ctx.fillText(`cursor: (x: ${state.infoPanel.mouseX}, y: ${state.infoPanel.mouseY})`, viewConfig.infoPanel.x + cursorStart, viewConfig.infoPanel.y + (viewConfig.infoPanel.height / 2));
 
   state.infoPanel.dirty = false;

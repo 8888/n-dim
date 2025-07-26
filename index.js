@@ -7,6 +7,7 @@ let viewConfig = {
   // dynamic
   infoPanel: { x: 0, y: 0, width: 0, height: 0 },
   xyPlane: { x: 0, y: 0, width: 0, height: 0, spacing: 0 },
+  yzPlane: { x: 0, y: 0, width: 0, height: 0, spacing: 0 },
 }
 
 const colors = {
@@ -29,9 +30,8 @@ const state = {
     y: Math.floor(viewConfig.map.spaces / 2),
     z: Math.floor(viewConfig.map.spaces / 2),
   },
-  xyPlane: {
-    dirty: true,
-  },
+  xyPlane: { dirty: true },
+  yzPlane: { dirty: true },
 };
 
 const drawLines = (lines, color, lineWidth) => {
@@ -51,6 +51,35 @@ const resizeCanvas = () => {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
 
+  // remember x y is starting location, width height is distance from x y, not location of the end point
+  const planeWidth = canvas.width / 3;
+  const planeHeight = canvas.height / 3;
+  const spaceSize = (canvas.height / 3) / (viewConfig.map.spaces + 2); // fit the board plus a margin on each side equal to the space size
+  viewConfig = {
+    ...viewConfig,
+    infoPanel: { x: 0, y: 0, width: canvas.width * 1, height: canvas.height * .05 },
+    get xyPlane() {
+      return {
+        x: 0,
+        y: this.infoPanel.y + this.infoPanel.height,
+        width: planeWidth,
+        height: planeHeight,
+        spacing: spaceSize,
+      };
+    },
+    get yzPlane() {
+      return {
+        x: planeWidth,
+        y: this.infoPanel.y + this.infoPanel.height,
+        width: planeWidth,
+        height: planeHeight,
+        spacing: spaceSize,
+      };
+    },
+  }
+
+  console.log(viewConfig);
+
   state.infoPanel.dirty = true;
   state.xyPlane.dirty = true;
 }
@@ -67,18 +96,20 @@ const handleMove = (key) => {
   } else if (key === 's' && state.player.y > 0) {
     state.player.y--;
     state.xyPlane.dirty = true;
+    state.yzPlane.dirty = true;
     state.infoPanel.dirty = true;
   } else if (key === 'w' && state.player.y < viewConfig.map.spaces - 1) {
     state.player.y++;
     state.xyPlane.dirty = true;
+    state.yzPlane.dirty = true;
     state.infoPanel.dirty = true;
   } else if ( key === 'd' && state.player.z > 0) {
     state.player.z--;
-    // set z view dirty
+    state.yzPlane.dirty = true;
     state.infoPanel.dirty = true;
   } else if (key === 'e' && state.player.z < viewConfig.map.spaces - 1) {
     state.player.z++;
-    // set z view dirty
+    state.yzPlane.dirty = true;
     state.infoPanel.dirty = true;
   }
 }
@@ -93,24 +124,8 @@ const init = () => {
   window.addEventListener('resize', resizeCanvas);
   window.addEventListener('keydown', event => handleMove(event.key));
   window.addEventListener('click', event => handleClick(event));
+
   resizeCanvas();
-
-  // remember x y is starting location, width height is distance from x y, not location of the end point
-  viewConfig = {
-    ...viewConfig,
-    infoPanel: { x: 0, y: 0, width: canvas.width * 1, height: canvas.height * .05 },
-    get xyPlane() {
-      return {
-        x: 0,
-        y: this.infoPanel.y + this.infoPanel.height,
-        width: canvas.width / 3,
-        height: canvas.height / 3,
-        spacing: (canvas.height / 3) / (this.map.spaces + 2), // fit the board plus a margin on each side equal to the space size
-      }
-    }
-  }
-
-  console.log(viewConfig);
 
   // draw area borders that won't need repainting
   const infoBorder = {
@@ -162,7 +177,75 @@ const displayInfoPanel = () => {
   state.infoPanel.dirty = false;
 };
 
-const displayxyPlane = () => {
+const drawGrid = (plane, leftMargin, topMargin, spaceSize) => {
+  const grid = [];
+  for (let i = 0; i < viewConfig.map.spaces + 1; i++) { // 11 lines for 10 space grid
+    grid.push({
+      xStart: plane.x + leftMargin,
+      yStart: plane.y + topMargin + spaceSize * i,
+      xEnd: plane.x + leftMargin + viewConfig.map.spaces * spaceSize,
+      yEnd: plane.y + topMargin + spaceSize * i,
+    });
+
+    grid.push({
+      xStart: plane.x + leftMargin + spaceSize * i,
+      yStart: plane.y + topMargin,
+      xEnd: plane.x + leftMargin  + spaceSize * i,
+      yEnd: plane.y + topMargin + viewConfig.map.spaces * spaceSize,
+    });
+  }
+
+  drawLines(grid, colors.black, 1);
+};
+
+const drawPlayer = (plane, xLoc, yLoc, leftMargin, topMargin, spaceSize) => {
+  // x = horizontal axis
+  // y = vertical axis
+  // actual view on canvas, not player n-dim location
+  // xLoc, yLoc are cell the player should be in from bottom left origin
+  ctx.fillStyle = colors.blue;
+  ctx.beginPath();
+  ctx.arc(
+    plane.x + leftMargin + (spaceSize / 2) + (spaceSize * xLoc),
+    plane.y + topMargin + (spaceSize / 2) + (spaceSize * yLoc),
+    (spaceSize / 2) - 2,
+    0,
+    2 * Math.PI,
+  );
+  ctx.fill();
+};
+
+const drawHelperAxis = (plane, leftMargin, topMargin, spaceSize, vertColor, vertText, horizColor, horizText) => {
+  //  y axis
+  const verticle = {
+    xStart: plane.x + (leftMargin * 2) + viewConfig.map.spaces * spaceSize,
+    yStart: plane.y + topMargin + spaceSize * viewConfig.map.spaces,
+    xEnd: plane.x + (leftMargin * 2) + viewConfig.map.spaces * spaceSize,
+    yEnd: plane.y + topMargin + spaceSize * (viewConfig.map.spaces / 2),
+  };
+
+  drawLines([verticle], vertColor, 1);
+
+  ctx.fillStyle = vertColor;
+  ctx.font = `${spaceSize * .75}px Verdana`;
+  ctx.fillText(vertText, verticle.xEnd + spaceSize/2, verticle.yStart - spaceSize * 2.5);
+
+  // x axis
+  const horizontal = {
+    xStart: plane.x + (leftMargin * 2) + viewConfig.map.spaces * spaceSize,
+    yStart: plane.y + topMargin + spaceSize * viewConfig.map.spaces,
+    xEnd: plane.x + (leftMargin * 2) + (viewConfig.map.spaces * 1.5) * spaceSize,
+    yEnd: plane.y + topMargin + spaceSize * viewConfig.map.spaces,
+  };
+
+  drawLines([horizontal], horizColor, 1);
+
+  ctx.fillStyle = horizColor;
+  ctx.font = `${spaceSize * .75}px Verdana`;
+  ctx.fillText(horizText, horizontal.xStart + spaceSize * 2, horizontal.yEnd - spaceSize/2);
+};
+
+const displayXYPlane = () => {
   if (!state.xyPlane.dirty) return;
 
   // indent all clears to avoid aliasing border lines due to thickness
@@ -176,74 +259,71 @@ const displayxyPlane = () => {
   const leftMargin = viewConfig.xyPlane.spacing;
   const topMargin = viewConfig.xyPlane.spacing;
   const spaceSize = viewConfig.xyPlane.spacing;
-  const grid = [];
-  for (let i = 0; i < viewConfig.map.spaces + 1; i++) { // 11 lines for 10 space grid
-    grid.push({
-      xStart: viewConfig.xyPlane.x + leftMargin,
-      yStart: viewConfig.xyPlane.y + topMargin + spaceSize * i,
-      xEnd: viewConfig.xyPlane.x + leftMargin + viewConfig.map.spaces * spaceSize,
-      yEnd: viewConfig.xyPlane.y + topMargin + spaceSize * i,
-    });
 
-    grid.push({
-      xStart: viewConfig.xyPlane.x + leftMargin + spaceSize * i,
-      yStart: viewConfig.xyPlane.y + topMargin,
-      xEnd: viewConfig.xyPlane.x + leftMargin  + spaceSize * i,
-      yEnd: viewConfig.xyPlane.y + topMargin + viewConfig.map.spaces * spaceSize,
-    });
-  }
+  drawGrid(viewConfig.xyPlane, leftMargin, topMargin, spaceSize);
 
-  drawLines(grid, colors.black, 1);
-
+  // draw player
   // x is correct with zero left
   // invert y to have zero on bottom
   const xLoc = state.player.x;
   const yLoc = viewConfig.map.spaces - 1 - state.player.y;
-  ctx.fillStyle = colors.blue;
-  ctx.beginPath();
-  ctx.arc(
-    viewConfig.xyPlane.x + leftMargin + (spaceSize / 2) + (spaceSize * xLoc),
-    viewConfig.xyPlane.y + topMargin + (spaceSize / 2) + (spaceSize * yLoc),
-    (spaceSize / 2) - 2,
-    0,
-    2 * Math.PI,
+  drawPlayer(viewConfig.xyPlane, xLoc, yLoc, leftMargin, topMargin, spaceSize);
+
+  drawHelperAxis(
+    viewConfig.xyPlane,
+    leftMargin,
+    topMargin,
+    spaceSize,
+    colors.green,
+    `y: ${state.player.y}`,
+    colors.red,
+    `x: ${state.player.x}`,
   );
-  ctx.fill();
-
-  //  y axis
-  const verticle = {
-    xStart: viewConfig.xyPlane.x + (leftMargin * 2) + viewConfig.map.spaces * spaceSize,
-    yStart: viewConfig.xyPlane.y + topMargin + spaceSize * viewConfig.map.spaces,
-    xEnd: viewConfig.xyPlane.x + (leftMargin * 2) + viewConfig.map.spaces * spaceSize,
-    yEnd: viewConfig.xyPlane.y + topMargin + spaceSize * (viewConfig.map.spaces / 2),
-  };
-
-  drawLines([verticle], colors.green, 1);
-
-  ctx.fillStyle = colors.green;
-  ctx.font = `${spaceSize * .75}px Verdana`;
-  ctx.fillText(`y: ${state.player.y}`, verticle.xEnd + spaceSize/2, verticle.yStart - spaceSize * 2.5);
-
-  // x axis
-  const horizontal = {
-    xStart: viewConfig.xyPlane.x + (leftMargin * 2) + viewConfig.map.spaces * spaceSize,
-    yStart: viewConfig.xyPlane.y + topMargin + spaceSize * viewConfig.map.spaces,
-    xEnd: viewConfig.xyPlane.x + (leftMargin * 2) + (viewConfig.map.spaces * 1.5) * spaceSize,
-    yEnd: viewConfig.xyPlane.y + topMargin + spaceSize * viewConfig.map.spaces,
-  };
-
-  drawLines([horizontal], colors.red, 1);
-
-  ctx.fillStyle = colors.red;
-  ctx.font = `${spaceSize * .75}px Verdana`;
-  ctx.fillText(`x: ${state.player.x}`, horizontal.xStart + spaceSize * 2, horizontal.yEnd - spaceSize/2);
 
   state.xyPlane.dirty = false;
 }
 
+const displayYZPlane = () => {
+  if (!state.yzPlane.dirty) return;
+
+  ctx.clearRect(
+    viewConfig.yzPlane.x + viewConfig.map.clearMargin,
+    viewConfig.yzPlane.y + viewConfig.map.clearMargin,
+    viewConfig.yzPlane.width - viewConfig.map.clearMargin * 2,
+    viewConfig.yzPlane.height - viewConfig.map.clearMargin * 2
+  );
+
+  const leftMargin = viewConfig.yzPlane.spacing;
+  const topMargin = viewConfig.yzPlane.spacing;
+  const spaceSize = viewConfig.yzPlane.spacing;
+
+  drawGrid(viewConfig.yzPlane, leftMargin, topMargin, spaceSize);
+
+  // draw player
+  // y is correct with zero left
+  // invert z to have zero on bottom
+  const yLoc = state.player.y;
+  const zLoc = viewConfig.map.spaces - 1 - state.player.z;
+  drawPlayer(viewConfig.yzPlane, yLoc, zLoc, leftMargin, topMargin, spaceSize);
+
+  drawHelperAxis(
+    viewConfig.yzPlane,
+    leftMargin,
+    topMargin,
+    spaceSize,
+    colors.purple,
+    `z: ${state.player.z}`,
+    colors.green,
+    `y: ${state.player.y}`,
+  );
+
+  state.yzPlane.dirty = false;
+}
+
 const display = () => {
   displayInfoPanel();
-  displayxyPlane();
+  displayXYPlane();
+  displayYZPlane();
 }
 
 window.onload = () => {

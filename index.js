@@ -6,6 +6,7 @@ let viewConfig = {
   map: { spaces: 11, clearMargin: 5 },
   // dynamic
   infoPanel: { x: 0, y: 0, width: 0, height: 0 },
+  zxPlane: { x: 0, y: 0, width: 0, height: 0, spacing: 0 },
   xyPlane: { x: 0, y: 0, width: 0, height: 0, spacing: 0 },
   yzPlane: { x: 0, y: 0, width: 0, height: 0, spacing: 0 },
 }
@@ -30,6 +31,7 @@ const state = {
     y: Math.floor(viewConfig.map.spaces / 2),
     z: Math.floor(viewConfig.map.spaces / 2),
   },
+  zxPlane: { dirty: true },
   xyPlane: { dirty: true },
   yzPlane: { dirty: true },
 };
@@ -58,7 +60,7 @@ const resizeCanvas = () => {
   viewConfig = {
     ...viewConfig,
     infoPanel: { x: 0, y: 0, width: canvas.width * 1, height: canvas.height * .05 },
-    get xyPlane() {
+    get zxPlane() {
       return {
         x: 0,
         y: this.infoPanel.y + this.infoPanel.height,
@@ -67,9 +69,18 @@ const resizeCanvas = () => {
         spacing: spaceSize,
       };
     },
-    get yzPlane() {
+    get xyPlane() {
       return {
         x: planeWidth,
+        y: this.infoPanel.y + this.infoPanel.height,
+        width: planeWidth,
+        height: planeHeight,
+        spacing: spaceSize,
+      };
+    },
+    get yzPlane() {
+      return {
+        x: planeWidth * 2,
         y: this.infoPanel.y + this.infoPanel.height,
         width: planeWidth,
         height: planeHeight,
@@ -87,10 +98,12 @@ const resizeCanvas = () => {
 const handleMove = (key) => {
   if (key === 'a' && state.player.x > 0) {
     state.player.x--;
+    state.zxPlane.dirty = true;
     state.xyPlane.dirty = true;
     state.infoPanel.dirty = true
   } else if (key === 'q' && state.player.x < viewConfig.map.spaces - 1) {
     state.player.x++;
+    state.zxPlane.dirty = true;
     state.xyPlane.dirty = true;
     state.infoPanel.dirty = true;
   } else if (key === 's' && state.player.y > 0) {
@@ -105,10 +118,12 @@ const handleMove = (key) => {
     state.infoPanel.dirty = true;
   } else if ( key === 'd' && state.player.z > 0) {
     state.player.z--;
+    state.zxPlane.dirty = true;
     state.yzPlane.dirty = true;
     state.infoPanel.dirty = true;
   } else if (key === 'e' && state.player.z < viewConfig.map.spaces - 1) {
     state.player.z++;
+    state.zxPlane.dirty = true;
     state.yzPlane.dirty = true;
     state.infoPanel.dirty = true;
   }
@@ -215,21 +230,7 @@ const drawPlayer = (plane, xLoc, yLoc, leftMargin, topMargin, spaceSize) => {
   ctx.fill();
 };
 
-const drawHelperAxis = (plane, leftMargin, topMargin, spaceSize, vertColor, vertText, horizColor, horizText) => {
-  //  y axis
-  const verticle = {
-    xStart: plane.x + (leftMargin * 2) + viewConfig.map.spaces * spaceSize,
-    yStart: plane.y + topMargin + spaceSize * viewConfig.map.spaces,
-    xEnd: plane.x + (leftMargin * 2) + viewConfig.map.spaces * spaceSize,
-    yEnd: plane.y + topMargin + spaceSize * (viewConfig.map.spaces / 2),
-  };
-
-  drawLines([verticle], vertColor, 1);
-
-  ctx.fillStyle = vertColor;
-  ctx.font = `${spaceSize * .75}px Verdana`;
-  ctx.fillText(vertText, verticle.xEnd + spaceSize/2, verticle.yStart - spaceSize * 2.5);
-
+const drawHelperAxis = (plane, leftMargin, topMargin, spaceSize, horizColor, horizText, vertColor, vertText) => {
   // x axis
   const horizontal = {
     xStart: plane.x + (leftMargin * 2) + viewConfig.map.spaces * spaceSize,
@@ -243,7 +244,59 @@ const drawHelperAxis = (plane, leftMargin, topMargin, spaceSize, vertColor, vert
   ctx.fillStyle = horizColor;
   ctx.font = `${spaceSize * .75}px Verdana`;
   ctx.fillText(horizText, horizontal.xStart + spaceSize * 2, horizontal.yEnd - spaceSize/2);
+
+  //  y axis
+  const verticle = {
+    xStart: plane.x + (leftMargin * 2) + viewConfig.map.spaces * spaceSize,
+    yStart: plane.y + topMargin + spaceSize * viewConfig.map.spaces,
+    xEnd: plane.x + (leftMargin * 2) + viewConfig.map.spaces * spaceSize,
+    yEnd: plane.y + topMargin + spaceSize * (viewConfig.map.spaces / 2),
+  };
+
+  drawLines([verticle], vertColor, 1);
+
+  ctx.fillStyle = vertColor;
+  ctx.font = `${spaceSize * .75}px Verdana`;
+  ctx.fillText(vertText, verticle.xEnd + spaceSize/2, verticle.yStart - spaceSize * 2.5);
 };
+
+const displayZXPlane = () => {
+  if (!state.zxPlane.dirty) return;
+
+  // indent all clears to avoid aliasing border lines due to thickness
+  ctx.clearRect(
+    viewConfig.zxPlane.x + viewConfig.map.clearMargin,
+    viewConfig.zxPlane.y + viewConfig.map.clearMargin,
+    viewConfig.zxPlane.width - viewConfig.map.clearMargin * 2,
+    viewConfig.zxPlane.height - viewConfig.map.clearMargin * 2
+  );
+
+  const leftMargin = viewConfig.zxPlane.spacing;
+  const topMargin = viewConfig.zxPlane.spacing;
+  const spaceSize = viewConfig.zxPlane.spacing;
+
+  drawGrid(viewConfig.zxPlane, leftMargin, topMargin, spaceSize);
+
+  // draw player
+  // z is correct with zero left
+  // invert x to have zero on bottom
+  const xLoc = state.player.z;
+  const yLoc = viewConfig.map.spaces - 1 - state.player.x;
+  drawPlayer(viewConfig.zxPlane, xLoc, yLoc, leftMargin, topMargin, spaceSize);
+
+  drawHelperAxis(
+    viewConfig.zxPlane,
+    leftMargin,
+    topMargin,
+    spaceSize,
+    colors.purple,
+    `z: ${state.player.z}`,
+    colors.red,
+    `x: ${state.player.x}`,
+  );
+
+  state.zxPlane.dirty = false;
+}
 
 const displayXYPlane = () => {
   if (!state.xyPlane.dirty) return;
@@ -274,10 +327,10 @@ const displayXYPlane = () => {
     leftMargin,
     topMargin,
     spaceSize,
-    colors.green,
-    `y: ${state.player.y}`,
     colors.red,
     `x: ${state.player.x}`,
+    colors.green,
+    `y: ${state.player.y}`,
   );
 
   state.xyPlane.dirty = false;
@@ -311,10 +364,10 @@ const displayYZPlane = () => {
     leftMargin,
     topMargin,
     spaceSize,
-    colors.purple,
-    `z: ${state.player.z}`,
     colors.green,
     `y: ${state.player.y}`,
+    colors.purple,
+    `z: ${state.player.z}`,
   );
 
   state.yzPlane.dirty = false;
@@ -322,6 +375,7 @@ const displayYZPlane = () => {
 
 const display = () => {
   displayInfoPanel();
+  displayZXPlane();
   displayXYPlane();
   displayYZPlane();
 }

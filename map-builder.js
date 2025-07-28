@@ -30,6 +30,12 @@ class Map {
   constructor(full, spaces) {
     this.full = full;
     this.spaces = spaces;
+    // set start point empty
+    this.full[this.getIndex(
+      Math.floor(this.spaces / 2),
+      Math.floor(this.spaces / 2),
+      Math.floor(this.spaces / 2)
+    )] = '.';
   }
 
   getIndex(x, y, z) {

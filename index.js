@@ -105,11 +105,13 @@ const handleMove = (key) => {
     state.player.x--;
     state.zxPlane.dirty = true;
     state.xyPlane.dirty = true;
+    state.yzPlane.dirty = true;
     state.infoPanel.dirty = true
   } else if (key === 'q' && state.player.x < viewConfig.map.spaces - 1) {
     state.player.x++;
     state.zxPlane.dirty = true;
     state.xyPlane.dirty = true;
+    state.yzPlane.dirty = true;
     state.infoPanel.dirty = true;
   } else if (key === 's' && state.player.y > 0) {
     state.player.y--;
@@ -126,11 +128,13 @@ const handleMove = (key) => {
   } else if ( key === 'd' && state.player.z > 0) {
     state.player.z--;
     state.zxPlane.dirty = true;
+    state.xyPlane.dirty = true;
     state.yzPlane.dirty = true;
     state.infoPanel.dirty = true;
   } else if (key === 'e' && state.player.z < viewConfig.map.spaces - 1) {
     state.player.z++;
     state.zxPlane.dirty = true;
+    state.xyPlane.dirty = true;
     state.yzPlane.dirty = true;
     state.infoPanel.dirty = true;
   }

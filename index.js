@@ -246,7 +246,6 @@ const drawPlayer = (plane, xLoc, yLoc, leftMargin, topMargin, spaceSize) => {
 };
 
 const drawWall = (plane, xLoc, yLoc, leftMargin, topMargin, spaceSize) => {
-  console.log(xLoc, yLoc)
   ctx.fillStyle = colors.gray;
   ctx.fillRect(
     plane.x + leftMargin + (spaceSize * xLoc),
@@ -315,8 +314,8 @@ const displayZXPlane = () => {
       if (map.getSpaceContents(x, state.player.y, z) === '#') {
         drawWall(
           viewConfig.zxPlane,
-          x, // z is correct with zero left
-          viewConfig.map.spaces - 1 - z, // invert x to have zero on bottom
+          z, // z is correct with zero left
+          viewConfig.map.spaces - 1 - x, // invert x to have zero on bottom
           leftMargin,
           topMargin,
           spaceSize
@@ -363,6 +362,21 @@ const displayXYPlane = () => {
   const yLoc = viewConfig.map.spaces - 1 - state.player.y;
   drawPlayer(viewConfig.xyPlane, xLoc, yLoc, leftMargin, topMargin, spaceSize);
 
+  for (let y = 0; y < viewConfig.map.spaces; y++) {
+    for (let x = 0; x < viewConfig.map.spaces; x++) {
+      if (map.getSpaceContents(x, y, state.player.z) === '#') {
+        drawWall(
+          viewConfig.xyPlane,
+          x, // x is correct with zero left
+          viewConfig.map.spaces - 1 - y, // invert y to have zero on bottom
+          leftMargin,
+          topMargin,
+          spaceSize
+        );
+      }
+    }
+  }
+
   drawHelperAxis(
     viewConfig.xyPlane,
     leftMargin,
@@ -399,6 +413,21 @@ const displayYZPlane = () => {
   const yLoc = state.player.y;
   const zLoc = viewConfig.map.spaces - 1 - state.player.z;
   drawPlayer(viewConfig.yzPlane, yLoc, zLoc, leftMargin, topMargin, spaceSize);
+
+  for (let z = 0; z < viewConfig.map.spaces; z++) {
+    for (let y = 0; y < viewConfig.map.spaces; y++) {
+      if (map.getSpaceContents(state.player.x, y, z) === '#') {
+        drawWall(
+          viewConfig.yzPlane,
+          y, // y is correct with zero left
+          viewConfig.map.spaces - 1 - z, // invert z to have zero on bottom
+          leftMargin,
+          topMargin,
+          spaceSize
+        );
+      }
+    }
+  }
 
   drawHelperAxis(
     viewConfig.yzPlane,

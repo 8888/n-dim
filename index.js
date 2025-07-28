@@ -1,9 +1,13 @@
+import { MapBuilder } from './map-builder.js';
+
 const canvas = document.getElementById('main-canvas');
 const ctx = canvas.getContext('2d');
 
+let map;
+
 let viewConfig = {
   // static
-  map: { spaces: 11, clearMargin: 5 },
+  map: { spaces: 11, clearMargin: 5, dimensions: 3 },
   // dynamic
   infoPanel: { x: 0, y: 0, width: 0, height: 0 },
   zxPlane: { x: 0, y: 0, width: 0, height: 0, spacing: 0 },
@@ -141,6 +145,10 @@ const init = () => {
   window.addEventListener('click', event => handleClick(event));
 
   resizeCanvas();
+
+  const mapBuilder = new MapBuilder(viewConfig);
+  map = mapBuilder.newMap();
+  console.log(map);
 
   // draw area borders that won't need repainting
   const infoBorder = {

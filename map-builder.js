@@ -14,7 +14,7 @@ export class MapBuilder {
       const space = Math.random() >= wallPercent ? '#' : '.';
       fullMap.push(space);
     }
-    return new Map(fullMap);
+    return new Map(fullMap, this.viewConfig.map.spaces);
   }
 }
 
@@ -27,13 +27,13 @@ so: 0 + 1*3 + 2*3*3 = 0+3+18 = 21
 map[21] = space contents for {x: 0, y:1, z: 2}
 */
 class Map {
-  constructor(full) {
+  constructor(full, spaces) {
     this.full = full;
+    this.spaces = spaces;
   }
 
   getIndex(x, y, z) {
-    const spaces = this.viewConfig.spaces;
-    return x + (y * spaces) + (z * spaces * spaces);
+    return x + (y * this.spaces) + (z * this.spaces * this.spaces);
   }
 
   getSpaceContents(x, y, z) {

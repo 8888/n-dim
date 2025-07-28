@@ -17,6 +17,7 @@ let viewConfig = {
 
 const colors = {
   black: '#000000',
+  gray: '#808080',
   blue: '#0000ff',
   green: '#2eb52a',
   red: '#993000',
@@ -112,11 +113,13 @@ const handleMove = (key) => {
     state.infoPanel.dirty = true;
   } else if (key === 's' && state.player.y > 0) {
     state.player.y--;
+    state.zxPlane.dirty = true;
     state.xyPlane.dirty = true;
     state.yzPlane.dirty = true;
     state.infoPanel.dirty = true;
   } else if (key === 'w' && state.player.y < viewConfig.map.spaces - 1) {
     state.player.y++;
+    state.zxPlane.dirty = true;
     state.xyPlane.dirty = true;
     state.yzPlane.dirty = true;
     state.infoPanel.dirty = true;
@@ -238,6 +241,17 @@ const drawPlayer = (plane, xLoc, yLoc, leftMargin, topMargin, spaceSize) => {
   ctx.fill();
 };
 
+const drawWall = (plane, xLoc, yLoc, leftMargin, topMargin, spaceSize) => {
+  console.log(xLoc, yLoc)
+  ctx.fillStyle = colors.gray;
+  ctx.fillRect(
+    plane.x + leftMargin + (spaceSize * xLoc),
+    plane.y + topMargin + (spaceSize * yLoc),
+    spaceSize,
+    spaceSize
+  )
+}
+
 const drawHelperAxis = (plane, leftMargin, topMargin, spaceSize, horizColor, horizText, vertColor, vertText) => {
   // x axis
   const horizontal = {
@@ -291,6 +305,21 @@ const displayZXPlane = () => {
   const xLoc = state.player.z;
   const yLoc = viewConfig.map.spaces - 1 - state.player.x;
   drawPlayer(viewConfig.zxPlane, xLoc, yLoc, leftMargin, topMargin, spaceSize);
+
+  for (let x = 0; x < viewConfig.map.spaces; x++) {
+    for (let z = 0; z < viewConfig.map.spaces; z++) {
+      if (map.getSpaceContents(x, state.player.y, z) === '#') {
+        drawWall(
+          viewConfig.zxPlane,
+          x, // z is correct with zero left
+          viewConfig.map.spaces - 1 - z, // invert x to have zero on bottom
+          leftMargin,
+          topMargin,
+          spaceSize
+        );
+      }
+    }
+  }
 
   drawHelperAxis(
     viewConfig.zxPlane,

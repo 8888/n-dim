@@ -100,38 +100,42 @@ const resizeCanvas = () => {
   state.xyPlane.dirty = true;
 }
 
+const isSpaceOpen = (x, y, z) => {
+  return map.getSpaceContents(x, y, z) === '.';
+}
+
 const handleMove = (key) => {
-  if (key === 'a' && state.player.x > 0) {
+  if (key === 'a' && state.player.x > 0 && isSpaceOpen(state.player.x - 1, state.player.y, state.player.z)) {
     state.player.x--;
     state.zxPlane.dirty = true;
     state.xyPlane.dirty = true;
     state.yzPlane.dirty = true;
     state.infoPanel.dirty = true
-  } else if (key === 'q' && state.player.x < viewConfig.map.spaces - 1) {
+  } else if (key === 'q' && state.player.x < viewConfig.map.spaces - 1 && isSpaceOpen(state.player.x + 1, state.player.y, state.player.z)) {
     state.player.x++;
     state.zxPlane.dirty = true;
     state.xyPlane.dirty = true;
     state.yzPlane.dirty = true;
     state.infoPanel.dirty = true;
-  } else if (key === 's' && state.player.y > 0) {
+  } else if (key === 's' && state.player.y > 0 && isSpaceOpen(state.player.x, state.player.y - 1, state.player.z)) {
     state.player.y--;
     state.zxPlane.dirty = true;
     state.xyPlane.dirty = true;
     state.yzPlane.dirty = true;
     state.infoPanel.dirty = true;
-  } else if (key === 'w' && state.player.y < viewConfig.map.spaces - 1) {
+  } else if (key === 'w' && state.player.y < viewConfig.map.spaces - 1 && isSpaceOpen(state.player.x, state.player.y + 1, state.player.z)) {
     state.player.y++;
     state.zxPlane.dirty = true;
     state.xyPlane.dirty = true;
     state.yzPlane.dirty = true;
     state.infoPanel.dirty = true;
-  } else if ( key === 'd' && state.player.z > 0) {
+  } else if ( key === 'd' && state.player.z > 0 && isSpaceOpen(state.player.x, state.player.y, state.player.z - 1)) {
     state.player.z--;
     state.zxPlane.dirty = true;
     state.xyPlane.dirty = true;
     state.yzPlane.dirty = true;
     state.infoPanel.dirty = true;
-  } else if (key === 'e' && state.player.z < viewConfig.map.spaces - 1) {
+  } else if (key === 'e' && state.player.z < viewConfig.map.spaces - 1 && isSpaceOpen(state.player.x , state.player.y, state.player.z + 1)) {
     state.player.z++;
     state.zxPlane.dirty = true;
     state.xyPlane.dirty = true;
@@ -311,7 +315,7 @@ const displayZXPlane = () => {
 
   for (let x = 0; x < viewConfig.map.spaces; x++) {
     for (let z = 0; z < viewConfig.map.spaces; z++) {
-      if (map.getSpaceContents(x, state.player.y, z) === '#') {
+      if (!isSpaceOpen(x, state.player.y, z)) {
         drawWall(
           viewConfig.zxPlane,
           z, // z is correct with zero left
@@ -364,7 +368,7 @@ const displayXYPlane = () => {
 
   for (let y = 0; y < viewConfig.map.spaces; y++) {
     for (let x = 0; x < viewConfig.map.spaces; x++) {
-      if (map.getSpaceContents(x, y, state.player.z) === '#') {
+      if (!isSpaceOpen(x, y, state.player.z)) {
         drawWall(
           viewConfig.xyPlane,
           x, // x is correct with zero left
@@ -416,7 +420,7 @@ const displayYZPlane = () => {
 
   for (let z = 0; z < viewConfig.map.spaces; z++) {
     for (let y = 0; y < viewConfig.map.spaces; y++) {
-      if (map.getSpaceContents(state.player.x, y, z) === '#') {
+      if (!isSpaceOpen(state.player.x, y, z)) {
         drawWall(
           viewConfig.yzPlane,
           y, // y is correct with zero left

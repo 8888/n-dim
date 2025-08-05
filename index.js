@@ -1,19 +1,13 @@
 import { MapBuilder } from './map-builder.js';
+import { DisplayManager } from './display-manager.js';
+import { ViewConfig } from './view-config.js';
 
 const canvas = document.getElementById('main-canvas');
 const ctx = canvas.getContext('2d');
 
 let map;
 
-let viewConfig = {
-  // static
-  map: { spaces: 11, clearMargin: 5, dimensions: 3 },
-  // dynamic
-  infoPanel: { x: 0, y: 0, width: 0, height: 0 },
-  zxPlane: { x: 0, y: 0, width: 0, height: 0, spacing: 0 },
-  xyPlane: { x: 0, y: 0, width: 0, height: 0, spacing: 0 },
-  yzPlane: { x: 0, y: 0, width: 0, height: 0, spacing: 0 },
-}
+const viewConfig = new ViewConfig(11, 3);
 
 const colors = {
   black: '#000000',
@@ -62,42 +56,35 @@ const resizeCanvas = () => {
   const planeWidth = canvas.width / 3;
   const planeHeight = canvas.height / 3;
   const spaceSize = (canvas.height / 3) / (viewConfig.map.spaces + 2); // fit the board plus a margin on each side equal to the space size
-  viewConfig = {
-    ...viewConfig,
-    infoPanel: { x: 0, y: 0, width: canvas.width * 1, height: canvas.height * .05 },
-    get zxPlane() {
-      return {
-        x: 0,
-        y: this.infoPanel.y + this.infoPanel.height,
-        width: planeWidth,
-        height: planeHeight,
-        spacing: spaceSize,
-      };
-    },
-    get xyPlane() {
-      return {
-        x: planeWidth,
-        y: this.infoPanel.y + this.infoPanel.height,
-        width: planeWidth,
-        height: planeHeight,
-        spacing: spaceSize,
-      };
-    },
-    get yzPlane() {
-      return {
-        x: planeWidth * 2,
-        y: this.infoPanel.y + this.infoPanel.height,
-        width: planeWidth,
-        height: planeHeight,
-        spacing: spaceSize,
-      };
-    },
-  }
+  viewConfig.updateInfoPanel({ x: 0, y: 0, width: canvas.width * 1, height: canvas.height * .05 });
+  viewConfig.updateZXPlane({
+    x: 0,
+    y: viewConfig.infoPanel.y + viewConfig.infoPanel.height,
+    width: planeWidth,
+    height: planeHeight,
+    spacing: spaceSize,
+  });
+  viewConfig.updateXYPlane({
+    x: planeWidth,
+    y: viewConfig.infoPanel.y + viewConfig.infoPanel.height,
+    width: planeWidth,
+    height: planeHeight,
+    spacing: spaceSize,
+  });
+  viewConfig.updateYZPlane({
+    x: planeWidth * 2,
+    y: viewConfig.infoPanel.y + viewConfig.infoPanel.height,
+    width: planeWidth,
+    height: planeHeight,
+    spacing: spaceSize,
+  });
 
   console.log(viewConfig);
 
   state.infoPanel.dirty = true;
+  state.zxPlane.dirty = true;
   state.xyPlane.dirty = true;
+  state.yzPlane.dirty = true;
 }
 
 const isSpaceOpen = (x, y, z) => {
@@ -186,29 +173,6 @@ const update = (delta) => {
     state.infoPanel.fps = updatedFps;
     state.infoPanel.dirty = true;
   }
-};
-
-const displayInfoPanel = () => {
-  if (!state.infoPanel.dirty) return;
-
-  // indent all clears to avoid aliasing border lines due to thickness
-  ctx.clearRect(
-    viewConfig.infoPanel.x + viewConfig.map.clearMargin,
-    viewConfig.infoPanel.y + viewConfig.map.clearMargin,
-    viewConfig.infoPanel.width - viewConfig.map.clearMargin * 2,
-    viewConfig.infoPanel.height - viewConfig.map.clearMargin * 2
-  );
-
-  const fpsStart = 20;
-  const coordsStart = fpsStart + 140;
-  const cursorStart = coordsStart + 200;
-  ctx.fillStyle = colors.black;
-  ctx.font = `${(viewConfig.infoPanel.height - viewConfig.infoPanel.y) * .4}px Verdana`;
-  ctx.fillText(`${state.infoPanel.fps} FPS`, viewConfig.infoPanel.x + fpsStart, viewConfig.infoPanel.y + (viewConfig.infoPanel.height / 2));
-  ctx.fillText(`[ x: ${state.player.x}, y: ${state.player.y}, z: ${state.player.z} ]`, viewConfig.infoPanel.x + coordsStart, viewConfig.infoPanel.y + (viewConfig.infoPanel.height / 2));
-  ctx.fillText(`cursor: (x: ${state.infoPanel.mouseX}, y: ${state.infoPanel.mouseY})`, viewConfig.infoPanel.x + cursorStart, viewConfig.infoPanel.y + (viewConfig.infoPanel.height / 2));
-
-  state.infoPanel.dirty = false;
 };
 
 const drawGrid = (plane, leftMargin, topMargin, spaceSize) => {
@@ -447,8 +411,9 @@ const displayYZPlane = () => {
   state.yzPlane.dirty = false;
 }
 
+const displayManager = new DisplayManager(state, viewConfig, ctx);
+
 const display = () => {
-  displayInfoPanel();
   displayZXPlane();
   displayXYPlane();
   displayYZPlane();
@@ -459,6 +424,7 @@ window.onload = () => {
   let mainLoopUpdateLast = performance.now();
   (function mainLoop(nowTime) {
     update(nowTime - mainLoopUpdateLast);
+    displayManager.render();
     display();
     mainLoopUpdateLast = nowTime;
     requestAnimationFrame(mainLoop);

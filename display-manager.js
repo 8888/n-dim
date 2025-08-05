@@ -18,6 +18,8 @@ export class DisplayManager {
   render() {
     this.infoPanel();
     this.zxPlane();
+    this.xyPlane();
+    this.yzPlane();
   }
 
   isSpaceOpen(x, y, z) {
@@ -204,5 +206,110 @@ export class DisplayManager {
     );
 
     this.state.zxPlane.dirty = false;
+  }
+
+  xyPlane() {
+    if (!this.state.xyPlane.dirty) return;
+
+    // indent all clears to avoid aliasing border lines due to thickness
+    this.ctx.clearRect(
+      this.viewConfig.xyPlane.x + this.viewConfig.map.clearMargin,
+      this.viewConfig.xyPlane.y + this.viewConfig.map.clearMargin,
+      this.viewConfig.xyPlane.width - this.viewConfig.map.clearMargin * 2,
+      this.viewConfig.xyPlane.height - this.viewConfig.map.clearMargin * 2
+    );
+
+    const leftMargin = this.viewConfig.xyPlane.spacing;
+    const topMargin = this.viewConfig.xyPlane.spacing;
+    const spaceSize = this.viewConfig.xyPlane.spacing;
+
+    this.drawGrid(this.viewConfig.xyPlane, leftMargin, topMargin, spaceSize);
+
+    // draw player
+    // x is correct with zero left
+    // invert y to have zero on bottom
+    const xLoc = this.state.player.x;
+    const yLoc = this.viewConfig.map.spaces - 1 - this.state.player.y;
+    this.drawPlayer(this.viewConfig.xyPlane, xLoc, yLoc, leftMargin, topMargin, spaceSize);
+
+    for (let y = 0; y < this.viewConfig.map.spaces; y++) {
+      for (let x = 0; x < this.viewConfig.map.spaces; x++) {
+        if (!this.isSpaceOpen(x, y, this.state.player.z)) {
+          this.drawWall(
+            this.viewConfig.xyPlane,
+            x, // x is correct with zero left
+            this.viewConfig.map.spaces - 1 - y, // invert y to have zero on bottom
+            leftMargin,
+            topMargin,
+            spaceSize
+          );
+        }
+      }
+    }
+
+    this.drawHelperAxis(
+      this.viewConfig.xyPlane,
+      leftMargin,
+      topMargin,
+      spaceSize,
+      this.colors.red,
+      `x: ${this.state.player.x}`,
+      this.colors.green,
+      `y: ${this.state.player.y}`,
+    );
+
+    this.state.xyPlane.dirty = false;
+  }
+
+  yzPlane() {
+    if (!this.state.yzPlane.dirty) return;
+
+    this.ctx.clearRect(
+      this.viewConfig.yzPlane.x + this.viewConfig.map.clearMargin,
+      this.viewConfig.yzPlane.y + this.viewConfig.map.clearMargin,
+      this.viewConfig.yzPlane.width - this.viewConfig.map.clearMargin * 2,
+      this.viewConfig.yzPlane.height - this.viewConfig.map.clearMargin * 2
+    );
+
+    const leftMargin = this.viewConfig.yzPlane.spacing;
+    const topMargin = this.viewConfig.yzPlane.spacing;
+    const spaceSize = this.viewConfig.yzPlane.spacing;
+
+    this.drawGrid(this.viewConfig.yzPlane, leftMargin, topMargin, spaceSize);
+
+    // draw player
+    // y is correct with zero left
+    // invert z to have zero on bottom
+    const yLoc = this.state.player.y;
+    const zLoc = this.viewConfig.map.spaces - 1 - this.state.player.z;
+    this.drawPlayer(this.viewConfig.yzPlane, yLoc, zLoc, leftMargin, topMargin, spaceSize);
+
+    for (let z = 0; z < this.viewConfig.map.spaces; z++) {
+      for (let y = 0; y < this.viewConfig.map.spaces; y++) {
+        if (!this.isSpaceOpen(this.state.player.x, y, z)) {
+          this.drawWall(
+            this.viewConfig.yzPlane,
+            y, // y is correct with zero left
+            this.viewConfig.map.spaces - 1 - z, // invert z to have zero on bottom
+            leftMargin,
+            topMargin,
+            spaceSize
+          );
+        }
+      }
+    }
+
+    this.drawHelperAxis(
+      this.viewConfig.yzPlane,
+      leftMargin,
+      topMargin,
+      spaceSize,
+      this.colors.green,
+      `y: ${this.state.player.y}`,
+      this.colors.purple,
+      `z: ${this.state.player.z}`,
+    );
+
+    this.state.yzPlane.dirty = false;
   }
 }

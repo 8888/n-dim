@@ -8,15 +8,112 @@ export class DisplayManager {
     purple: '#9858b8',
   }
 
-  constructor(state, viewConfig, ctx) {
+  constructor(state, viewConfig, ctx, map) {
     this.state = state;
     this.viewConfig = viewConfig;
     this.ctx = ctx;
+    this.map = map;
   }
 
   render() {
     this.infoPanel();
+    this.zxPlane();
   }
+
+  isSpaceOpen(x, y, z) {
+    return this.map.getSpaceContents(x, y, z) === '.';
+  }
+
+  drawPlayer(plane, xLoc, yLoc, leftMargin, topMargin, spaceSize) {
+    // x = horizontal axis
+    // y = vertical axis
+    // actual view on canvas, not player n-dim location
+    // xLoc, yLoc are cell the player should be in from bottom left origin
+    this.ctx.fillStyle = this.colors.blue;
+    this.ctx.beginPath();
+    this.ctx.arc(
+      plane.x + leftMargin + (spaceSize / 2) + (spaceSize * xLoc),
+      plane.y + topMargin + (spaceSize / 2) + (spaceSize * yLoc),
+      (spaceSize / 2) - 2,
+      0,
+      2 * Math.PI,
+    );
+    this.ctx.fill();
+  };
+
+  drawWall(plane, xLoc, yLoc, leftMargin, topMargin, spaceSize) {
+    this.ctx.fillStyle = this.colors.gray;
+    this.ctx.fillRect(
+      plane.x + leftMargin + (spaceSize * xLoc),
+      plane.y + topMargin + (spaceSize * yLoc),
+      spaceSize,
+      spaceSize
+    )
+  }
+
+  drawHelperAxis(plane, leftMargin, topMargin, spaceSize, horizColor, horizText, vertColor, vertText) {
+    // x axis
+    const horizontal = {
+      xStart: plane.x + (leftMargin * 2) + this.viewConfig.map.spaces * spaceSize,
+      yStart: plane.y + topMargin + spaceSize * this.viewConfig.map.spaces,
+      xEnd: plane.x + (leftMargin * 2) + (this.viewConfig.map.spaces * 1.5) * spaceSize,
+      yEnd: plane.y + topMargin + spaceSize * this.viewConfig.map.spaces,
+    };
+
+    this.drawLines([horizontal], horizColor, 1);
+
+    this.ctx.fillStyle = horizColor;
+    this.ctx.font = `${spaceSize * .75}px Verdana`;
+    this.ctx.fillText(horizText, horizontal.xStart + spaceSize * 2, horizontal.yEnd - spaceSize/2);
+
+    //  y axis
+    const verticle = {
+      xStart: plane.x + (leftMargin * 2) + this.viewConfig.map.spaces * spaceSize,
+      yStart: plane.y + topMargin + spaceSize * this.viewConfig.map.spaces,
+      xEnd: plane.x + (leftMargin * 2) + this.viewConfig.map.spaces * spaceSize,
+      yEnd: plane.y + topMargin + spaceSize * (this.viewConfig.map.spaces / 2),
+    };
+
+    this.drawLines([verticle], vertColor, 1);
+
+    this.ctx.fillStyle = vertColor;
+    this.ctx.font = `${spaceSize * .75}px Verdana`;
+    this.ctx.fillText(vertText, verticle.xEnd + spaceSize/2, verticle.yStart - spaceSize * 2.5);
+  };
+
+  drawLines(lines, color, lineWidth) {
+    this.ctx.strokeStyle = color;
+    this.ctx.lineWidth = lineWidth;
+    this.ctx.beginPath();
+
+    lines.forEach(line => {
+      this.ctx.moveTo(line.xStart, line.yStart);
+      this.ctx.lineTo(line.xEnd, line.yEnd);
+    });
+
+    this.ctx.stroke();
+  }
+
+  drawGrid(plane, leftMargin, topMargin, spaceSize) {
+    const grid = [];
+    for (let i = 0; i < this.viewConfig.map.spaces + 1; i++) { // 11 lines for 10 space grid
+      grid.push({
+        xStart: plane.x + leftMargin,
+        yStart: plane.y + topMargin + spaceSize * i,
+        xEnd: plane.x + leftMargin + this.viewConfig.map.spaces * spaceSize,
+        yEnd: plane.y + topMargin + spaceSize * i,
+      });
+
+      grid.push({
+        xStart: plane.x + leftMargin + spaceSize * i,
+        yStart: plane.y + topMargin,
+        xEnd: plane.x + leftMargin  + spaceSize * i,
+        yEnd: plane.y + topMargin + this.viewConfig.map.spaces * spaceSize,
+      });
+    }
+
+    this.drawLines(grid, this.colors.black, 1);
+  };
 
   infoPanel() {
     if (!this.state.infoPanel.dirty) return;
@@ -54,5 +151,58 @@ export class DisplayManager {
     );
 
     this.state.infoPanel.dirty = false;
+  }
+
+  zxPlane() {
+    if (!this.state.zxPlane.dirty) return;
+
+    // indent all clears to avoid aliasing border lines due to thickness
+    this.ctx.clearRect(
+      this.viewConfig.zxPlane.x + this.viewConfig.map.clearMargin,
+      this.viewConfig.zxPlane.y + this.viewConfig.map.clearMargin,
+      this.viewConfig.zxPlane.width - this.viewConfig.map.clearMargin * 2,
+      this.viewConfig.zxPlane.height - this.viewConfig.map.clearMargin * 2
+    );
+
+    const leftMargin = this.viewConfig.zxPlane.spacing;
+    const topMargin = this.viewConfig.zxPlane.spacing;
+    const spaceSize = this.viewConfig.zxPlane.spacing;
+
+    this.drawGrid(this.viewConfig.zxPlane, leftMargin, topMargin, spaceSize);
+
+    // draw player
+    // z is correct with zero left
+    // invert x to have zero on bottom
+    const xLoc = this.state.player.z;
+    const yLoc = this.viewConfig.map.spaces - 1 - this.state.player.x;
+    this.drawPlayer(this.viewConfig.zxPlane, xLoc, yLoc, leftMargin, topMargin, spaceSize);
+
+    for (let x = 0; x < this.viewConfig.map.spaces; x++) {
+      for (let z = 0; z < this.viewConfig.map.spaces; z++) {
+        if (!this.isSpaceOpen(x, this.state.player.y, z)) {
+          this.drawWall(
+            this.viewConfig.zxPlane,
+            z, // z is correct with zero left
+            this.viewConfig.map.spaces - 1 - x, // invert x to have zero on bottom
+            leftMargin,
+            topMargin,
+            spaceSize
+          );
+        }
+      }
+    }
+
+    this.drawHelperAxis(
+      this.viewConfig.zxPlane,
+      leftMargin,
+      topMargin,
+      spaceSize,
+      this.colors.purple,
+      `z: ${this.state.player.z}`,
+      this.colors.red,
+      `x: ${this.state.player.x}`,
+    );
+
+    this.state.zxPlane.dirty = false;
   }
 }

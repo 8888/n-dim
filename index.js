@@ -5,8 +5,6 @@ import { ViewConfig } from './view-config.js';
 const canvas = document.getElementById('main-canvas');
 const ctx = canvas.getContext('2d');
 
-let map;
-
 const viewConfig = new ViewConfig(11, 3);
 
 const colors = {
@@ -138,16 +136,6 @@ const handleClick = (event) => {
 };
 
 const init = () => {
-  window.addEventListener('resize', resizeCanvas);
-  window.addEventListener('keydown', event => handleMove(event.key));
-  window.addEventListener('click', event => handleClick(event));
-
-  resizeCanvas();
-
-  const mapBuilder = new MapBuilder(viewConfig);
-  map = mapBuilder.newMap();
-  console.log(map);
-
   // draw area borders that won't need repainting
   const infoBorder = {
     xStart: viewConfig.infoPanel.x,
@@ -252,59 +240,6 @@ const drawHelperAxis = (plane, leftMargin, topMargin, spaceSize, horizColor, hor
   ctx.font = `${spaceSize * .75}px Verdana`;
   ctx.fillText(vertText, verticle.xEnd + spaceSize/2, verticle.yStart - spaceSize * 2.5);
 };
-
-const displayZXPlane = () => {
-  if (!state.zxPlane.dirty) return;
-
-  // indent all clears to avoid aliasing border lines due to thickness
-  ctx.clearRect(
-    viewConfig.zxPlane.x + viewConfig.map.clearMargin,
-    viewConfig.zxPlane.y + viewConfig.map.clearMargin,
-    viewConfig.zxPlane.width - viewConfig.map.clearMargin * 2,
-    viewConfig.zxPlane.height - viewConfig.map.clearMargin * 2
-  );
-
-  const leftMargin = viewConfig.zxPlane.spacing;
-  const topMargin = viewConfig.zxPlane.spacing;
-  const spaceSize = viewConfig.zxPlane.spacing;
-
-  drawGrid(viewConfig.zxPlane, leftMargin, topMargin, spaceSize);
-
-  // draw player
-  // z is correct with zero left
-  // invert x to have zero on bottom
-  const xLoc = state.player.z;
-  const yLoc = viewConfig.map.spaces - 1 - state.player.x;
-  drawPlayer(viewConfig.zxPlane, xLoc, yLoc, leftMargin, topMargin, spaceSize);
-
-  for (let x = 0; x < viewConfig.map.spaces; x++) {
-    for (let z = 0; z < viewConfig.map.spaces; z++) {
-      if (!isSpaceOpen(x, state.player.y, z)) {
-        drawWall(
-          viewConfig.zxPlane,
-          z, // z is correct with zero left
-          viewConfig.map.spaces - 1 - x, // invert x to have zero on bottom
-          leftMargin,
-          topMargin,
-          spaceSize
-        );
-      }
-    }
-  }
-
-  drawHelperAxis(
-    viewConfig.zxPlane,
-    leftMargin,
-    topMargin,
-    spaceSize,
-    colors.purple,
-    `z: ${state.player.z}`,
-    colors.red,
-    `x: ${state.player.x}`,
-  );
-
-  state.zxPlane.dirty = false;
-}
 
 const displayXYPlane = () => {
   if (!state.xyPlane.dirty) return;
@@ -411,10 +346,19 @@ const displayYZPlane = () => {
   state.yzPlane.dirty = false;
 }
 
-const displayManager = new DisplayManager(state, viewConfig, ctx);
+window.addEventListener('resize', resizeCanvas);
+window.addEventListener('keydown', event => handleMove(event.key));
+window.addEventListener('click', event => handleClick(event));
+
+resizeCanvas();
+
+const mapBuilder = new MapBuilder(viewConfig);
+const map = mapBuilder.newMap();
+console.log(map);
+
+const displayManager = new DisplayManager(state, viewConfig, ctx, map);
 
 const display = () => {
-  displayZXPlane();
   displayXYPlane();
   displayYZPlane();
 }

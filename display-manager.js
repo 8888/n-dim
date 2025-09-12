@@ -1,13 +1,6 @@
-export class DisplayManager {
-  colors = {
-    black: '#000000',
-    gray: '#808080',
-    blue: '#0000ff',
-    green: '#2eb52a',
-    red: '#993000',
-    purple: '#9858b8',
-  }
+import { Colors } from './helpers.js'
 
+export class DisplayManager {
   constructor(state, viewConfig, ctx, map) {
     this.state = state;
     this.viewConfig = viewConfig;
@@ -31,7 +24,7 @@ export class DisplayManager {
     // y = vertical axis
     // actual view on canvas, not player n-dim location
     // xLoc, yLoc are cell the player should be in from bottom left origin
-    this.ctx.fillStyle = this.colors.blue;
+    this.ctx.fillStyle = Colors.blue;
     this.ctx.beginPath();
     this.ctx.arc(
       plane.x + leftMargin + (spaceSize / 2) + (spaceSize * xLoc),
@@ -44,7 +37,7 @@ export class DisplayManager {
   };
 
   drawWall(plane, xLoc, yLoc, leftMargin, topMargin, spaceSize) {
-    this.ctx.fillStyle = this.colors.gray;
+    this.ctx.fillStyle = Colors.gray;
     this.ctx.fillRect(
       plane.x + leftMargin + (spaceSize * xLoc),
       plane.y + topMargin + (spaceSize * yLoc),
@@ -114,7 +107,7 @@ export class DisplayManager {
       });
     }
 
-    this.drawLines(grid, this.colors.black, 1);
+    this.drawLines(grid, Colors.black, 1);
   };
 
   infoPanel() {
@@ -131,7 +124,7 @@ export class DisplayManager {
     const fpsStart = 20;
     const coordsStart = fpsStart + 140;
     const cursorStart = coordsStart + 200;
-    this.ctx.fillStyle = this.colors.black;
+    this.ctx.fillStyle = Colors.black;
     this.ctx.font = `${(this.viewConfig.infoPanel.height - this.viewConfig.infoPanel.y) * .4}px Verdana`;
 
     this.ctx.fillText(
@@ -199,9 +192,9 @@ export class DisplayManager {
       leftMargin,
       topMargin,
       spaceSize,
-      this.colors.purple,
+      Colors.purple,
       `z: ${this.state.player.z}`,
-      this.colors.red,
+      Colors.red,
       `x: ${this.state.player.x}`,
     );
 
@@ -252,9 +245,9 @@ export class DisplayManager {
       leftMargin,
       topMargin,
       spaceSize,
-      this.colors.red,
+      Colors.red,
       `x: ${this.state.player.x}`,
-      this.colors.green,
+      Colors.green,
       `y: ${this.state.player.y}`,
     );
 
@@ -304,9 +297,9 @@ export class DisplayManager {
       leftMargin,
       topMargin,
       spaceSize,
-      this.colors.green,
+      Colors.green,
       `y: ${this.state.player.y}`,
-      this.colors.purple,
+      Colors.purple,
       `z: ${this.state.player.z}`,
     );
 

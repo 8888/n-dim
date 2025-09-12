@@ -1,20 +1,12 @@
 import { MapBuilder } from './map-builder.js';
 import { DisplayManager } from './display-manager.js';
 import { ViewConfig } from './view-config.js';
+import { Colors } from './helpers.js'
 
 const canvas = document.getElementById('main-canvas');
 const ctx = canvas.getContext('2d');
 
 const viewConfig = new ViewConfig(11, 3);
-
-const colors = {
-  black: '#000000',
-  gray: '#808080',
-  blue: '#0000ff',
-  green: '#2eb52a',
-  red: '#993000',
-  purple: '#9858b8',
-};
 
 const state = {
   infoPanel: {
@@ -151,7 +143,7 @@ const init = () => {
     yEnd: viewConfig.infoPanel.height + viewConfig.xyPlane.height,
   }
 
-  drawLines([infoBorder, xyBorder], colors.black, 2);
+  drawLines([infoBorder, xyBorder], Colors.black, 2);
 };
 
 const update = (delta) => {

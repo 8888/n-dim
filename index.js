@@ -3,6 +3,7 @@ import { DisplayManager } from './display-manager.js';
 import { ViewConfig } from './view-config.js';
 import { Colors } from './helpers.js'
 
+// this belongs in the view
 const canvas = document.getElementById('main-canvas');
 const ctx = canvas.getContext('2d');
 
@@ -25,6 +26,7 @@ const state = {
   yzPlane: { dirty: true },
 };
 
+// view
 const drawLines = (lines, color, lineWidth) => {
   ctx.strokeStyle = color;
   ctx.lineWidth = lineWidth;
@@ -38,6 +40,7 @@ const drawLines = (lines, color, lineWidth) => {
   ctx.stroke();
 }
 
+// Maybe this lives in the view
 const resizeCanvas = () => {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
@@ -81,6 +84,11 @@ const isSpaceOpen = (x, y, z) => {
   return map.getSpaceContents(x, y, z) === '.';
 }
 
+// this should go to an input controller
+// then Game can be out here and hold logic
+// Game shouldn't require a view or inputs, it should still work.
+// it's really just kniwing that it has to be key a
+// let the input controller say there was a move x up, or move y down move event and Game here updates the state
 const handleMove = (key) => {
   if (key === 'a' && state.player.x > 0 && isSpaceOpen(state.player.x - 1, state.player.y, state.player.z)) {
     state.player.x--;
@@ -155,12 +163,16 @@ const update = (delta) => {
   }
 };
 
+// this would be in the input controller
+// Game would subscribe to events Move, Inspect, Resize
+// Maybe not resize, we may need to move the Canvas itself into the view. Then game never cares about a resize, the view captures the event because it owns the canvas, and then makes the change
 window.addEventListener('resize', resizeCanvas);
 window.addEventListener('keydown', event => handleMove(event.key));
 window.addEventListener('click', event => handleClick(event));
 
 resizeCanvas();
 
+// this is the correct way
 const mapBuilder = new MapBuilder(viewConfig);
 const map = mapBuilder.newMap();
 console.log(map);

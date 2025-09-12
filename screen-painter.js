@@ -1,6 +1,6 @@
 import { Colors } from './helpers.js'
 
-export class DisplayManager {
+export class ScreenPainter {
   constructor(state, viewConfig, ctx, map) {
     this.state = state;
     this.viewConfig = viewConfig;

@@ -1,5 +1,5 @@
 import { MapBuilder } from './map-builder.js';
-import { DisplayManager } from './display-manager.js';
+import { ScreenPainter } from './screen-painter.js';
 import { ViewConfig } from './view-config.js';
 import { Colors } from './helpers.js'
 
@@ -177,14 +177,14 @@ const mapBuilder = new MapBuilder(viewConfig);
 const map = mapBuilder.newMap();
 console.log(map);
 
-const displayManager = new DisplayManager(state, viewConfig, ctx, map);
+const screenPainter = new ScreenPainter(state, viewConfig, ctx, map);
 
 window.onload = () => {
   init();
   let mainLoopUpdateLast = performance.now();
   (function mainLoop(nowTime) {
     update(nowTime - mainLoopUpdateLast);
-    displayManager.render();
+    screenPainter.render();
     mainLoopUpdateLast = nowTime;
     requestAnimationFrame(mainLoop);
   })(performance.now());

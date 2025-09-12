@@ -1,13 +1,13 @@
 import { MapBuilder } from './map-builder.js';
 import { ScreenPainter } from './screen-painter.js';
-import { ViewConfig } from './view-config.js';
+import { DisplayManager } from './display-manager.js';
 import { Colors } from './helpers.js'
 
 // this belongs in the view
 const canvas = document.getElementById('main-canvas');
 const ctx = canvas.getContext('2d');
 
-const viewConfig = new ViewConfig(11, 3);
+const displayManager = new DisplayManager(11, 3);
 
 const state = {
   infoPanel: {
@@ -17,9 +17,9 @@ const state = {
     mouseY: 0,
   },
   player: {
-    x: Math.floor(viewConfig.map.spaces / 2),
-    y: Math.floor(viewConfig.map.spaces / 2),
-    z: Math.floor(viewConfig.map.spaces / 2),
+    x: Math.floor(displayManager.map.spaces / 2),
+    y: Math.floor(displayManager.map.spaces / 2),
+    z: Math.floor(displayManager.map.spaces / 2),
   },
   zxPlane: { dirty: true },
   xyPlane: { dirty: true },
@@ -48,31 +48,31 @@ const resizeCanvas = () => {
   // remember x y is starting location, width height is distance from x y, not location of the end point
   const planeWidth = canvas.width / 3;
   const planeHeight = canvas.height / 3;
-  const spaceSize = (canvas.height / 3) / (viewConfig.map.spaces + 2); // fit the board plus a margin on each side equal to the space size
-  viewConfig.updateInfoPanel({ x: 0, y: 0, width: canvas.width * 1, height: canvas.height * .05 });
-  viewConfig.updateZXPlane({
+  const spaceSize = (canvas.height / 3) / (displayManager.map.spaces + 2); // fit the board plus a margin on each side equal to the space size
+  displayManager.updateInfoPanel({ x: 0, y: 0, width: canvas.width * 1, height: canvas.height * .05 });
+  displayManager.updateZXPlane({
     x: 0,
-    y: viewConfig.infoPanel.y + viewConfig.infoPanel.height,
+    y: displayManager.infoPanel.y + displayManager.infoPanel.height,
     width: planeWidth,
     height: planeHeight,
     spacing: spaceSize,
   });
-  viewConfig.updateXYPlane({
+  displayManager.updateXYPlane({
     x: planeWidth,
-    y: viewConfig.infoPanel.y + viewConfig.infoPanel.height,
+    y: displayManager.infoPanel.y + displayManager.infoPanel.height,
     width: planeWidth,
     height: planeHeight,
     spacing: spaceSize,
   });
-  viewConfig.updateYZPlane({
+  displayManager.updateYZPlane({
     x: planeWidth * 2,
-    y: viewConfig.infoPanel.y + viewConfig.infoPanel.height,
+    y: displayManager.infoPanel.y + displayManager.infoPanel.height,
     width: planeWidth,
     height: planeHeight,
     spacing: spaceSize,
   });
 
-  console.log(viewConfig);
+  console.log(displayManager);
 
   state.infoPanel.dirty = true;
   state.zxPlane.dirty = true;
@@ -96,7 +96,7 @@ const handleMove = (key) => {
     state.xyPlane.dirty = true;
     state.yzPlane.dirty = true;
     state.infoPanel.dirty = true
-  } else if (key === 'q' && state.player.x < viewConfig.map.spaces - 1 && isSpaceOpen(state.player.x + 1, state.player.y, state.player.z)) {
+  } else if (key === 'q' && state.player.x < displayManager.map.spaces - 1 && isSpaceOpen(state.player.x + 1, state.player.y, state.player.z)) {
     state.player.x++;
     state.zxPlane.dirty = true;
     state.xyPlane.dirty = true;
@@ -108,7 +108,7 @@ const handleMove = (key) => {
     state.xyPlane.dirty = true;
     state.yzPlane.dirty = true;
     state.infoPanel.dirty = true;
-  } else if (key === 'w' && state.player.y < viewConfig.map.spaces - 1 && isSpaceOpen(state.player.x, state.player.y + 1, state.player.z)) {
+  } else if (key === 'w' && state.player.y < displayManager.map.spaces - 1 && isSpaceOpen(state.player.x, state.player.y + 1, state.player.z)) {
     state.player.y++;
     state.zxPlane.dirty = true;
     state.xyPlane.dirty = true;
@@ -120,7 +120,7 @@ const handleMove = (key) => {
     state.xyPlane.dirty = true;
     state.yzPlane.dirty = true;
     state.infoPanel.dirty = true;
-  } else if (key === 'e' && state.player.z < viewConfig.map.spaces - 1 && isSpaceOpen(state.player.x , state.player.y, state.player.z + 1)) {
+  } else if (key === 'e' && state.player.z < displayManager.map.spaces - 1 && isSpaceOpen(state.player.x , state.player.y, state.player.z + 1)) {
     state.player.z++;
     state.zxPlane.dirty = true;
     state.xyPlane.dirty = true;
@@ -138,17 +138,17 @@ const handleClick = (event) => {
 const init = () => {
   // draw area borders that won't need repainting
   const infoBorder = {
-    xStart: viewConfig.infoPanel.x,
-    yStart: viewConfig.infoPanel.height,
-    xEnd: viewConfig.infoPanel.x + viewConfig.infoPanel.width,
-    yEnd: viewConfig.infoPanel.height,
+    xStart: displayManager.infoPanel.x,
+    yStart: displayManager.infoPanel.height,
+    xEnd: displayManager.infoPanel.x + displayManager.infoPanel.width,
+    yEnd: displayManager.infoPanel.height,
   }
 
   const xyBorder = {
-    xStart: viewConfig.xyPlane.x,
-    yStart: viewConfig.infoPanel.height + viewConfig.xyPlane.height,
-    xEnd: viewConfig.xyPlane.x + viewConfig.xyPlane.width,
-    yEnd: viewConfig.infoPanel.height + viewConfig.xyPlane.height,
+    xStart: displayManager.xyPlane.x,
+    yStart: displayManager.infoPanel.height + displayManager.xyPlane.height,
+    xEnd: displayManager.xyPlane.x + displayManager.xyPlane.width,
+    yEnd: displayManager.infoPanel.height + displayManager.xyPlane.height,
   }
 
   drawLines([infoBorder, xyBorder], Colors.black, 2);
@@ -173,11 +173,13 @@ window.addEventListener('click', event => handleClick(event));
 resizeCanvas();
 
 // this is the correct way
-const mapBuilder = new MapBuilder(viewConfig);
+const mapBuilder = new MapBuilder(displayManager);
 const map = mapBuilder.newMap();
 console.log(map);
 
-const screenPainter = new ScreenPainter(state, viewConfig, ctx, map);
+// why does ScreenPainter get to be the boss?
+// DisplayManager should have a screen painter and manage it
+const screenPainter = new ScreenPainter(state, displayManager, ctx, map);
 
 window.onload = () => {
   init();

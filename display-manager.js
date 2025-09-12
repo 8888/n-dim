@@ -1,4 +1,4 @@
-export class ViewConfig {
+export class DisplayManager {
   /*
   Make this the display manager
   change the displayer manager to screen painter

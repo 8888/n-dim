@@ -1,5 +1,6 @@
 export const Events = {
   requestMove: 'requestMove',
+  movePlayer: 'movePlayer',
   inspectPoint: 'inspectPoint',
 };
 

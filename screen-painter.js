@@ -1,12 +1,14 @@
 import { ViewConfig } from './view-config.js';
 import { Colors } from './helpers.js'
+import { Events } from './event-bus.js';
 
 export class ScreenPainter {
-  constructor(state, map, spaces, dimensions) {
+  constructor(state, map, spaces, dimensions, eventBus) {
     this.state = state;
     this.map = map;
     this.spaces = spaces;
     this.dimensions = dimensions;
+    this.eventBus = eventBus;
 
     this.viewConfig = new ViewConfig(this.spaces, this.dimensions);
 
@@ -17,13 +19,15 @@ export class ScreenPainter {
     this.drawStaticBorders();
 
     window.addEventListener('resize', this.resizeCanvas);
+
+    this.eventBus.subscribe(Events.movePlayer, event => this.handleMove(event));
   }
 
   render() {
     this.infoPanel();
-    this.zxPlane();
-    this.xyPlane();
-    this.yzPlane();
+    if (this.viewConfig.zxPlane.dirty) this.drawPlane(this.viewConfig.zxPlane);
+    if (this.viewConfig.xyPlane.dirty) this.drawPlane(this.viewConfig.xyPlane);
+    if (this.viewConfig.yzPlane.dirty) this.drawPlane(this.viewConfig.yzPlane);
   }
 
   resizeCanvas() {
@@ -60,9 +64,16 @@ export class ScreenPainter {
     console.log(this.viewConfig);
 
     this.state.infoPanel.dirty = true;
-    this.state.zxPlane.dirty = true;
-    this.state.xyPlane.dirty = true;
-    this.state.yzPlane.dirty = true;
+    this.viewConfig.zxPlane.dirty = true;
+    this.viewConfig.xyPlane.dirty = true;
+    this.viewConfig.yzPlane.dirty = true;
+  }
+
+  // todo: will they all always be dirty? probably right?
+  handleMove({from, to, dimension, distance}) {
+    this.viewConfig.zxPlane.dirty = true;
+    this.viewConfig.xyPlane.dirty = true;
+    this.viewConfig.yzPlane.dirty = true;
   }
 
   drawStaticBorders() {
@@ -212,161 +223,58 @@ export class ScreenPainter {
     this.state.infoPanel.dirty = false;
   }
 
-  zxPlane() {
-    if (!this.state.zxPlane.dirty) return;
-
+  drawPlane(planeLayout) {
     // indent all clears to avoid aliasing border lines due to thickness
     this.ctx.clearRect(
-      this.viewConfig.zxPlane.x + this.viewConfig.map.clearMargin,
-      this.viewConfig.zxPlane.y + this.viewConfig.map.clearMargin,
-      this.viewConfig.zxPlane.width - this.viewConfig.map.clearMargin * 2,
-      this.viewConfig.zxPlane.height - this.viewConfig.map.clearMargin * 2
+      planeLayout.x + this.viewConfig.map.clearMargin,
+      planeLayout.y + this.viewConfig.map.clearMargin,
+      planeLayout.width - this.viewConfig.map.clearMargin * 2,
+      planeLayout.height - this.viewConfig.map.clearMargin * 2
     );
 
-    const leftMargin = this.viewConfig.zxPlane.spacing;
-    const topMargin = this.viewConfig.zxPlane.spacing;
-    const spaceSize = this.viewConfig.zxPlane.spacing;
+    const leftMargin = planeLayout.spacing;
+    const topMargin = planeLayout.spacing;
+    const spaceSize = planeLayout.spacing;
 
-    this.drawGrid(this.viewConfig.zxPlane, leftMargin, topMargin, spaceSize);
+    // todo: we are passing the layout and then a prop from the layout 3 times
+    this.drawGrid(planeLayout, leftMargin, topMargin, spaceSize);
 
     // draw player
-    // z is correct with zero left
-    // invert x to have zero on bottom
-    const xLoc = this.state.player.z;
-    const yLoc = this.spaces - 1 - this.state.player.x;
-    this.drawPlayer(this.viewConfig.zxPlane, xLoc, yLoc, leftMargin, topMargin, spaceSize);
+    // horizontal x Axis is correct with zero left
+    // invert vertical y axis to have zero on bottom
+    const xLoc = this.state.player[planeLayout.horzAxis];
+    const yLoc = this.spaces - 1 - this.state.player[planeLayout.vertAxis];
+    this.drawPlayer(planeLayout, xLoc, yLoc, leftMargin, topMargin, spaceSize);
 
-    for (let x = 0; x < this.spaces; x++) {
-      for (let z = 0; z < this.spaces; z++) {
-        if (!this.map.isSpaceOpen({x, y: this.state.player.y, z})) {
+    for (let vert = 0; vert < this.spaces; vert++) {
+      for (let horz = 0; horz < this.spaces; horz++) {
+        const space = {...this.state.player};
+        space[planeLayout.vertAxis] = vert;
+        space[planeLayout.horzAxis] = horz;
+        if (!this.map.isSpaceOpen(space)) {
           this.drawWall(
-            this.viewConfig.zxPlane,
-            z, // z is correct with zero left
-            this.spaces - 1 - x, // invert x to have zero on bottom
+            planeLayout,
+            horz, // correct with zero on the left
+            this.spaces - 1 - vert, // invert to have 0 on bottom
             leftMargin,
             topMargin,
-            spaceSize
+            spaceSize,
           );
         }
       }
     }
 
     this.drawHelperAxis(
-      this.viewConfig.zxPlane,
+      planeLayout,
       leftMargin,
       topMargin,
       spaceSize,
-      Colors.purple,
-      `z: ${this.state.player.z}`,
-      Colors.red,
-      `x: ${this.state.player.x}`,
+      this.viewConfig.colorMap[planeLayout.horzAxis],
+      `${planeLayout.horzAxis}: ${this.state.player[planeLayout.horzAxis]}`,
+      this.viewConfig.colorMap[planeLayout.vertAxis],
+      `${planeLayout.vertAxis}: ${this.state.player[planeLayout.vertAxis]}`,
     );
 
-    this.state.zxPlane.dirty = false;
-  }
-
-  xyPlane() {
-    if (!this.state.xyPlane.dirty) return;
-
-    // indent all clears to avoid aliasing border lines due to thickness
-    this.ctx.clearRect(
-      this.viewConfig.xyPlane.x + this.viewConfig.map.clearMargin,
-      this.viewConfig.xyPlane.y + this.viewConfig.map.clearMargin,
-      this.viewConfig.xyPlane.width - this.viewConfig.map.clearMargin * 2,
-      this.viewConfig.xyPlane.height - this.viewConfig.map.clearMargin * 2
-    );
-
-    const leftMargin = this.viewConfig.xyPlane.spacing;
-    const topMargin = this.viewConfig.xyPlane.spacing;
-    const spaceSize = this.viewConfig.xyPlane.spacing;
-
-    this.drawGrid(this.viewConfig.xyPlane, leftMargin, topMargin, spaceSize);
-
-    // draw player
-    // x is correct with zero left
-    // invert y to have zero on bottom
-    const xLoc = this.state.player.x;
-    const yLoc = this.spaces - 1 - this.state.player.y;
-    this.drawPlayer(this.viewConfig.xyPlane, xLoc, yLoc, leftMargin, topMargin, spaceSize);
-
-    for (let y = 0; y < this.spaces; y++) {
-      for (let x = 0; x < this.spaces; x++) {
-        if (!this.map.isSpaceOpen({x, y, z: this.state.player.z})) {
-          this.drawWall(
-            this.viewConfig.xyPlane,
-            x, // x is correct with zero left
-            this.spaces - 1 - y, // invert y to have zero on bottom
-            leftMargin,
-            topMargin,
-            spaceSize
-          );
-        }
-      }
-    }
-
-    this.drawHelperAxis(
-      this.viewConfig.xyPlane,
-      leftMargin,
-      topMargin,
-      spaceSize,
-      Colors.red,
-      `x: ${this.state.player.x}`,
-      Colors.green,
-      `y: ${this.state.player.y}`,
-    );
-
-    this.state.xyPlane.dirty = false;
-  }
-
-  yzPlane() {
-    if (!this.state.yzPlane.dirty) return;
-
-    this.ctx.clearRect(
-      this.viewConfig.yzPlane.x + this.viewConfig.map.clearMargin,
-      this.viewConfig.yzPlane.y + this.viewConfig.map.clearMargin,
-      this.viewConfig.yzPlane.width - this.viewConfig.map.clearMargin * 2,
-      this.viewConfig.yzPlane.height - this.viewConfig.map.clearMargin * 2
-    );
-
-    const leftMargin = this.viewConfig.yzPlane.spacing;
-    const topMargin = this.viewConfig.yzPlane.spacing;
-    const spaceSize = this.viewConfig.yzPlane.spacing;
-
-    this.drawGrid(this.viewConfig.yzPlane, leftMargin, topMargin, spaceSize);
-
-    // draw player
-    // y is correct with zero left
-    // invert z to have zero on bottom
-    const yLoc = this.state.player.y;
-    const zLoc = this.spaces - 1 - this.state.player.z;
-    this.drawPlayer(this.viewConfig.yzPlane, yLoc, zLoc, leftMargin, topMargin, spaceSize);
-
-    for (let z = 0; z < this.spaces; z++) {
-      for (let y = 0; y < this.spaces; y++) {
-        if (!this.map.isSpaceOpen({x: this.state.player.x, y, z})) {
-          this.drawWall(
-            this.viewConfig.yzPlane,
-            y, // y is correct with zero left
-            this.spaces - 1 - z, // invert z to have zero on bottom
-            leftMargin,
-            topMargin,
-            spaceSize
-          );
-        }
-      }
-    }
-
-    this.drawHelperAxis(
-      this.viewConfig.yzPlane,
-      leftMargin,
-      topMargin,
-      spaceSize,
-      Colors.green,
-      `y: ${this.state.player.y}`,
-      Colors.purple,
-      `z: ${this.state.player.z}`,
-    );
-
-    this.state.yzPlane.dirty = false;
+    planeLayout.dirty = false;
   }
 }

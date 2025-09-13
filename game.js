@@ -22,19 +22,16 @@ export class Game {
         y: Math.floor(this.spaces / 2),
         z: Math.floor(this.spaces / 2),
       },
-      zxPlane: { dirty: true },
-      xyPlane: { dirty: true },
-      yzPlane: { dirty: true },
     };
 
     const mapBuilder = new MapBuilder(this.spaces, this.dimensions);
     this.map = mapBuilder.newMap();
 
-    this.screenPainter = new ScreenPainter(this.state, this.map, this.spaces, this.dimensions);
+    this.screenPainter = new ScreenPainter(this.state, this.map, this.spaces, this.dimensions, this.eventBus);
 
     new InputController(this.eventBus);
 
-    this.eventBus.subscribe(Events.requestMove, event => this.handleMove(event));
+    this.eventBus.subscribe(Events.requestMove, event => this.handleMoveRequest(event));
     this.eventBus.subscribe(Events.inspectPoint, event => this.handleInspect(event));
   }
 
@@ -42,15 +39,20 @@ export class Game {
     return this.map.isSpaceInBounds(newSpace) && this.map.isSpaceOpen(newSpace);
   }
 
-  handleMove({dimension, distance}) {
+  handleMoveRequest({dimension, distance}) {
     const newSpace = {...this.state.player};
     newSpace[dimension] += distance;
 
     if (this.isMoveValid(newSpace)) {
+      this.eventBus.publish(Events.movePlayer, {
+        from: this.state.player,
+        to: newSpace,
+        dimension,
+        distance,
+      });
+
       this.state.player[dimension] += distance;
-      this.state.zxPlane.dirty = true;
-      this.state.xyPlane.dirty = true;
-      this.state.yzPlane.dirty = true;
+
       this.state.infoPanel.dirty = true
     }
   }

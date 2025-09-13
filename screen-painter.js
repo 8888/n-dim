@@ -8,6 +8,9 @@ export class ScreenPainter {
 
     this.canvas = document.getElementById('main-canvas');
     this.ctx = this.canvas.getContext('2d');
+    this.resizeCanvas();
+
+    this.drawStaticBorders();
   }
 
   render() {

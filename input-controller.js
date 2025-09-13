@@ -21,6 +21,10 @@ export class InputController {
       this.eventBus.publish(Events.requestMove, {dimension: 'z', distance: -1});
     } else if (key === 'e') {
       this.eventBus.publish(Events.requestMove, {dimension: 'z', distance: 1});
+    } else if (key === 'r') {
+      this.eventBus.publish(Events.requestMove, {dimension: 'w', distance: -1});
+    } else if (key === 'f') {
+      this.eventBus.publish(Events.requestMove, {dimension: 'w', distance: 1});
     }
   }
 

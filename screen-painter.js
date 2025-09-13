@@ -65,10 +65,6 @@ export class ScreenPainter {
     this.state.yzPlane.dirty = true;
   }
 
-  isSpaceOpen(x, y, z) {
-    return this.map.getSpaceContents(x, y, z) === '.';
-  }
-
   drawStaticBorders() {
     const infoBorder = {
       xStart: this.viewConfig.infoPanel.x,
@@ -242,7 +238,7 @@ export class ScreenPainter {
 
     for (let x = 0; x < this.spaces; x++) {
       for (let z = 0; z < this.spaces; z++) {
-        if (!this.isSpaceOpen(x, this.state.player.y, z)) {
+        if (!this.map.isSpaceOpen({x, y: this.state.player.y, z})) {
           this.drawWall(
             this.viewConfig.zxPlane,
             z, // z is correct with zero left
@@ -295,7 +291,7 @@ export class ScreenPainter {
 
     for (let y = 0; y < this.spaces; y++) {
       for (let x = 0; x < this.spaces; x++) {
-        if (!this.isSpaceOpen(x, y, this.state.player.z)) {
+        if (!this.map.isSpaceOpen({x, y, z: this.state.player.z})) {
           this.drawWall(
             this.viewConfig.xyPlane,
             x, // x is correct with zero left
@@ -347,7 +343,7 @@ export class ScreenPainter {
 
     for (let z = 0; z < this.spaces; z++) {
       for (let y = 0; y < this.spaces; y++) {
-        if (!this.isSpaceOpen(this.state.player.x, y, z)) {
+        if (!this.map.isSpaceOpen({x: this.state.player.x, y, z})) {
           this.drawWall(
             this.viewConfig.yzPlane,
             y, // y is correct with zero left

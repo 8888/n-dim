@@ -38,23 +38,15 @@ export class Game {
     this.eventBus.subscribe(Events.inspectPoint, event => this.handleInspect(event));
   }
 
-  isSpaceInBounds({x, y, z}) {
-    return (
-      x >= 0 && x <= this.spaces - 1 &&
-      y >= 0 && y <= this.spaces - 1 &&
-      z >= 0 && z <= this.spaces - 1
-    );
-  }
-
-  isSpaceOpen({x, y, z}) {
-    return this.map.getSpaceContents(x, y, z) === '.';
+  isMoveValid(newSpace) {
+    return this.map.isSpaceInBounds(newSpace) && this.map.isSpaceOpen(newSpace);
   }
 
   handleMove({dimension, distance}) {
     const newSpace = {...this.state.player};
     newSpace[dimension] += distance;
 
-    if (this.isSpaceInBounds(newSpace) && this.isSpaceOpen(newSpace)) {
+    if (this.isMoveValid(newSpace)) {
       this.state.player[dimension] += distance;
       this.state.zxPlane.dirty = true;
       this.state.xyPlane.dirty = true;

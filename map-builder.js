@@ -46,4 +46,16 @@ class Map {
   getSpaceContents(x, y, z) {
     return this.full[this.getIndex(x, y, z)];
   }
+
+  isSpaceInBounds({x, y, z}) {
+    return (
+      x >= 0 && x <= this.spaces - 1 &&
+      y >= 0 && y <= this.spaces - 1 &&
+      z >= 0 && z <= this.spaces - 1
+    );
+  }
+
+  isSpaceOpen({x, y, z}) {
+    return this.getSpaceContents(x, y, z) === '.';
+  }
 }

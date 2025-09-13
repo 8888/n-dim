@@ -5,7 +5,7 @@ import { EventBus, Events } from './event-bus.js';
 
 export class Game {
   spaces = 11;
-  dimensions = 3;
+  dimensions = 4;
 
   constructor() {
     this.eventBus = new EventBus();
@@ -20,11 +20,13 @@ export class Game {
         x: Math.floor(this.spaces / 2),
         y: Math.floor(this.spaces / 2),
         z: Math.floor(this.spaces / 2),
+        w: Math.floor(this.spaces / 2),
       },
     };
 
     const mapBuilder = new MapBuilder(this.spaces, this.dimensions);
     this.map = mapBuilder.newMap();
+    console.log(this.map);
 
     this.screenPainter = new ScreenPainter(this.state, this.map, this.spaces, this.dimensions, this.eventBus);
 

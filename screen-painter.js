@@ -21,14 +21,13 @@ export class ScreenPainter {
     window.addEventListener('resize', this.resizeCanvas);
 
     this.eventBus.subscribe(Events.movePlayer, event => this.handleMove(event));
+    // todo: not really using this
     this.eventBus.subscribe(Events.inspectPoint, () => this.viewConfig.infoPanel.dirty = true);
   }
 
   render() {
     this.drawInfoPanel();
-    if (this.viewConfig.zxPlane.dirty) this.drawPlane(this.viewConfig.zxPlane);
-    if (this.viewConfig.xyPlane.dirty) this.drawPlane(this.viewConfig.xyPlane);
-    if (this.viewConfig.yzPlane.dirty) this.drawPlane(this.viewConfig.yzPlane);
+    this.viewConfig.allPlanes.forEach(plane => this.drawPlane(plane));
   }
 
   resizeCanvas() {
@@ -39,27 +38,20 @@ export class ScreenPainter {
     const planeWidth = this.canvas.width / 3;
     const planeHeight = this.canvas.height / 3;
     const spaceSize = (this.canvas.height / 3) / (this.spaces + 2); // fit the board plus a margin on each side equal to the space size
-    this.viewConfig.updateInfoPanel({ x: 0, y: 0, width: this.canvas.width * 1, height: this.canvas.height * .05 });
-    this.viewConfig.updateZXPlane({
-      x: 0,
-      y: this.viewConfig.infoPanel.y + this.viewConfig.infoPanel.height,
-      width: planeWidth,
-      height: planeHeight,
-      spacing: spaceSize,
-    });
-    this.viewConfig.updateXYPlane({
-      x: planeWidth,
-      y: this.viewConfig.infoPanel.y + this.viewConfig.infoPanel.height,
-      width: planeWidth,
-      height: planeHeight,
-      spacing: spaceSize,
-    });
-    this.viewConfig.updateYZPlane({
-      x: planeWidth * 2,
-      y: this.viewConfig.infoPanel.y + this.viewConfig.infoPanel.height,
-      width: planeWidth,
-      height: planeHeight,
-      spacing: spaceSize,
+
+    this.viewConfig.infoPanel.x = 0;
+    this.viewConfig.infoPanel.y = 0;
+    this.viewConfig.infoPanel.width = this.canvas.width * 1;
+    this.viewConfig.infoPanel.height = this.canvas.height * .05;
+
+    this.viewConfig.layout.forEach((row, r) => {
+      row.forEach((plane, p) => {
+        plane.x = planeWidth * p;
+        plane.y = (this.viewConfig.infoPanel.y + this.viewConfig.infoPanel.height) + (r * (this.canvas.height * 0.4));
+        plane.width = planeWidth;
+        plane.height = planeHeight;
+        plane.spacing = spaceSize;
+      });
     });
 
     console.log(this.viewConfig);

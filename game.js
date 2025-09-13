@@ -1,11 +1,15 @@
 import { MapBuilder } from './map-builder.js';
 import { ScreenPainter } from './screen-painter.js';
+import { InputController } from './input-controller.js';
+import { EventBus, Events } from './event-bus.js';
 
 export class Game {
   spaces = 11;
   dimensions = 3;
 
   constructor() {
+    this.eventBus = new EventBus();
+
     this.state = {
       infoPanel: {
         dirty: true,
@@ -28,62 +32,33 @@ export class Game {
 
     this.screenPainter = new ScreenPainter(this.state, this.map, this.spaces, this.dimensions);
 
-    /* todo
-    this would be in the input controller
-    Game would subscribe to events Move, Inspect
-    */
-    window.addEventListener('keydown', event => this.handleMove(event.key));
-    window.addEventListener('click', event => this.handleClick(event));
+    new InputController(this.eventBus);
+
+    this.eventBus.subscribe(Events.requestMove, event => this.handleMove(event));
   }
 
-  isSpaceOpen(x, y, z) {
+  isSpaceInBounds({x, y, z}) {
+    return (
+      x >= 0 && x <= this.spaces - 1 &&
+      y >= 0 && y <= this.spaces - 1 &&
+      z >= 0 && z <= this.spaces - 1
+    );
+  }
+
+  isSpaceOpen({x, y, z}) {
     return this.map.getSpaceContents(x, y, z) === '.';
   }
 
-  /* todo
-  this should go to an input controller
-  then Game can be out here and hold logic
-  Game shouldn't require a view or inputs, it should still work.
-  it's really just kniwing that it has to be key a
-  let the input controller say there was a move x up, or move y down move event and Game here updates the state
-  */
-  handleMove(key) {
-    if (key === 'a' && this.state.player.x > 0 && this.isSpaceOpen(this.state.player.x - 1, this.state.player.y, this.state.player.z)) {
-      this.state.player.x--;
+  handleMove({dimension, distance}) {
+    const newSpace = {...this.state.player};
+    newSpace[dimension] += distance;
+
+    if (this.isSpaceInBounds(newSpace) && this.isSpaceOpen(newSpace)) {
+      this.state.player[dimension] += distance;
       this.state.zxPlane.dirty = true;
       this.state.xyPlane.dirty = true;
       this.state.yzPlane.dirty = true;
       this.state.infoPanel.dirty = true
-    } else if (key === 'q' && this.state.player.x < this.spaces - 1 && this.isSpaceOpen(this.state.player.x + 1, this.state.player.y, this.state.player.z)) {
-      this.state.player.x++;
-      this.state.zxPlane.dirty = true;
-      this.state.xyPlane.dirty = true;
-      this.state.yzPlane.dirty = true;
-      this.state.infoPanel.dirty = true;
-    } else if (key === 's' && this.state.player.y > 0 && this.isSpaceOpen(this.state.player.x, this.state.player.y - 1, this.state.player.z)) {
-      this.state.player.y--;
-      this.state.zxPlane.dirty = true;
-      this.state.xyPlane.dirty = true;
-      this.state.yzPlane.dirty = true;
-      this.state.infoPanel.dirty = true;
-    } else if (key === 'w' && this.state.player.y < this.spaces - 1 && this.isSpaceOpen(this.state.player.x, this.state.player.y + 1, this.state.player.z)) {
-      this.state.player.y++;
-      this.state.zxPlane.dirty = true;
-      this.state.xyPlane.dirty = true;
-      this.state.yzPlane.dirty = true;
-      this.state.infoPanel.dirty = true;
-    } else if ( key === 'd' && this.state.player.z > 0 && this.isSpaceOpen(this.state.player.x, this.state.player.y, this.state.player.z - 1)) {
-      this.state.player.z--;
-      this.state.zxPlane.dirty = true;
-      this.state.xyPlane.dirty = true;
-      this.state.yzPlane.dirty = true;
-      this.state.infoPanel.dirty = true;
-    } else if (key === 'e' && this.state.player.z < this.spaces - 1 && this.isSpaceOpen(this.state.player.x , this.state.player.y, this.state.player.z + 1)) {
-      this.state.player.z++;
-      this.state.zxPlane.dirty = true;
-      this.state.xyPlane.dirty = true;
-      this.state.yzPlane.dirty = true;
-      this.state.infoPanel.dirty = true;
     }
   }
 

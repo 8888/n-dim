@@ -1,0 +1,33 @@
+export const Events = {
+  requestMove: 'requestMove',
+};
+
+export class EventBus {
+  // Currently unable to unsubscribe from events
+  constructor() {
+    this.subscribers = {};
+    for (const [key, value] of Object.entries(Events)) {
+      this.subscribers[value] = [];
+    }
+  }
+
+  subscribe(eventName, callback) {
+    try {
+      if (!Events[eventName]) throw new Error('Event name not registered! Unable to subscribe')
+
+      this.subscribers[eventName].push(callback);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  publish(eventName, data) {
+    try {
+      if (!Events[eventName]) throw new Error('Event name not registered! Unable to publish')
+
+      this.subscribers[eventName].forEach(callback => callback(data));
+    } catch (e) {
+      console.error(e);
+    }
+  }
+}

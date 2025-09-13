@@ -1,10 +1,11 @@
 export class MapBuilder {
-  constructor(viewConfig) {
-    this.viewConfig = viewConfig;
+  constructor(spaces, dimensions) {
+    this.spaces = spaces;
+    this.dimensions = dimensions;
   }
 
   newMap() {
-    return this.createMap(this.viewConfig.map.dimensions, this.viewConfig.map.spaces);
+    return this.createMap(this.dimensions, this.spaces);
   }
 
   createMap(dimensions, spaces) {
@@ -14,7 +15,7 @@ export class MapBuilder {
       const space = Math.random() >= wallPercent ? '#' : '.';
       fullMap.push(space);
     }
-    return new Map(fullMap, this.viewConfig.map.spaces);
+    return new Map(fullMap, this.spaces);
   }
 }
 

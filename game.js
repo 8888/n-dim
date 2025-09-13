@@ -3,8 +3,11 @@ import { MapBuilder } from './map-builder.js';
 import { ScreenPainter } from './screen-painter.js';
 
 export class Game {
+  spaces = 11;
+  dimensions = 3;
+
   constructor() {
-    this.displayManager = new DisplayManager(11, 3);
+    this.displayManager = new DisplayManager(this.spaces, this.dimensions);
 
     this.state = {
       infoPanel: {
@@ -14,17 +17,16 @@ export class Game {
         mouseY: 0,
       },
       player: {
-        x: Math.floor(this.displayManager.map.spaces / 2),
-        y: Math.floor(this.displayManager.map.spaces / 2),
-        z: Math.floor(this.displayManager.map.spaces / 2),
+        x: Math.floor(this.spaces / 2),
+        y: Math.floor(this.spaces / 2),
+        z: Math.floor(this.spaces / 2),
       },
       zxPlane: { dirty: true },
       xyPlane: { dirty: true },
       yzPlane: { dirty: true },
     };
 
-    // todo: why does a mapbuilder need the display manager?
-    const mapBuilder = new MapBuilder(this.displayManager);
+    const mapBuilder = new MapBuilder(this.spaces, this.dimensions);
     this.map = mapBuilder.newMap();
 
     /* todo
@@ -61,7 +63,7 @@ export class Game {
       this.state.xyPlane.dirty = true;
       this.state.yzPlane.dirty = true;
       this.state.infoPanel.dirty = true
-    } else if (key === 'q' && this.state.player.x < this.displayManager.map.spaces - 1 && this.isSpaceOpen(this.state.player.x + 1, this.state.player.y, this.state.player.z)) {
+    } else if (key === 'q' && this.state.player.x < this.spaces - 1 && this.isSpaceOpen(this.state.player.x + 1, this.state.player.y, this.state.player.z)) {
       this.state.player.x++;
       this.state.zxPlane.dirty = true;
       this.state.xyPlane.dirty = true;
@@ -73,7 +75,7 @@ export class Game {
       this.state.xyPlane.dirty = true;
       this.state.yzPlane.dirty = true;
       this.state.infoPanel.dirty = true;
-    } else if (key === 'w' && this.state.player.y < this.displayManager.map.spaces - 1 && this.isSpaceOpen(this.state.player.x, this.state.player.y + 1, this.state.player.z)) {
+    } else if (key === 'w' && this.state.player.y < this.spaces - 1 && this.isSpaceOpen(this.state.player.x, this.state.player.y + 1, this.state.player.z)) {
       this.state.player.y++;
       this.state.zxPlane.dirty = true;
       this.state.xyPlane.dirty = true;
@@ -85,7 +87,7 @@ export class Game {
       this.state.xyPlane.dirty = true;
       this.state.yzPlane.dirty = true;
       this.state.infoPanel.dirty = true;
-    } else if (key === 'e' && this.state.player.z < this.displayManager.map.spaces - 1 && this.isSpaceOpen(this.state.player.x , this.state.player.y, this.state.player.z + 1)) {
+    } else if (key === 'e' && this.state.player.z < this.spaces - 1 && this.isSpaceOpen(this.state.player.x , this.state.player.y, this.state.player.z + 1)) {
       this.state.player.z++;
       this.state.zxPlane.dirty = true;
       this.state.xyPlane.dirty = true;

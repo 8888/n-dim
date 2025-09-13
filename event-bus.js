@@ -1,5 +1,6 @@
 export const Events = {
   requestMove: 'requestMove',
+  inspectPoint: 'inspectPoint',
 };
 
 export class EventBus {
@@ -13,7 +14,7 @@ export class EventBus {
 
   subscribe(eventName, callback) {
     try {
-      if (!Events[eventName]) throw new Error('Event name not registered! Unable to subscribe')
+      if (!Events[eventName]) throw new Error(`Event name ${eventName} not registered! Unable to subscribe`)
 
       this.subscribers[eventName].push(callback);
     } catch (e) {
@@ -23,7 +24,7 @@ export class EventBus {
 
   publish(eventName, data) {
     try {
-      if (!Events[eventName]) throw new Error('Event name not registered! Unable to publish')
+      if (!Events[eventName]) throw new Error(`Event name ${eventName} not registered! Unable to publish`)
 
       this.subscribers[eventName].forEach(callback => callback(data));
     } catch (e) {

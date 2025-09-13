@@ -23,4 +23,8 @@ export class InputController {
       this.eventBus.publish(Events.requestMove, {dimension: 'z', distance: 1});
     }
   }
+
+  handleClick(event) {
+    this.eventBus.publish(Events.inspectPoint, {x: event.clientX, y: event.clientY});
+  }
 }

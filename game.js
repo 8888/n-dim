@@ -35,6 +35,7 @@ export class Game {
     new InputController(this.eventBus);
 
     this.eventBus.subscribe(Events.requestMove, event => this.handleMove(event));
+    this.eventBus.subscribe(Events.inspectPoint, event => this.handleInspect(event));
   }
 
   isSpaceInBounds({x, y, z}) {
@@ -62,9 +63,9 @@ export class Game {
     }
   }
 
-  handleClick(event) {
-    this.state.infoPanel.mouseX = event.clientX;
-    this.state.infoPanel.mouseY = event.clientY;
+  handleInspect({x, y}) {
+    this.state.infoPanel.mouseX = x;
+    this.state.infoPanel.mouseY = y;
     this.state.infoPanel.dirty = true;
   };
 

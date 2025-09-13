@@ -15,6 +15,8 @@ export class ScreenPainter {
     this.resizeCanvas();
 
     this.drawStaticBorders();
+
+    window.addEventListener('resize', this.resizeCanvas);
   }
 
   render() {

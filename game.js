@@ -30,10 +30,8 @@ export class Game {
 
     /* todo
     this would be in the input controller
-    Game would subscribe to events Move, Inspect, Resize
-    Maybe not resize, we may need to move the Canvas itself into the view. Then game never cares about a resize, the view captures the event because it owns the canvas, and then makes the change
+    Game would subscribe to events Move, Inspect
     */
-    window.addEventListener('resize', this.screenPainter.resizeCanvas);
     window.addEventListener('keydown', event => this.handleMove(event.key));
     window.addEventListener('click', event => this.handleClick(event));
   }

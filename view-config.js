@@ -1,4 +1,4 @@
-export class DisplayManager {
+export class ViewConfig {
   constructor(spaces, dimensions) {
     this.map = { spaces, dimensions, clearMargin: 5 };
     this.infoPanel = { x: 0, y: 0, width: 0, height: 0 };

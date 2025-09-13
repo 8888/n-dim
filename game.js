@@ -1,4 +1,4 @@
-import { DisplayManager } from './display-manager.js';
+import { ViewConfig } from './view-config.js';
 import { MapBuilder } from './map-builder.js';
 import { ScreenPainter } from './screen-painter.js';
 
@@ -7,7 +7,7 @@ export class Game {
   dimensions = 3;
 
   constructor() {
-    this.displayManager = new DisplayManager(this.spaces, this.dimensions);
+    this.viewConfig = new ViewConfig(this.spaces, this.dimensions);
 
     this.state = {
       infoPanel: {
@@ -33,7 +33,7 @@ export class Game {
     why does ScreenPainter get to be the boss?
     this.displayManager should have a screen painter and manage it
     */
-    this.screenPainter = new ScreenPainter(this.state, this.displayManager, this.map);
+    this.screenPainter = new ScreenPainter(this.state, this.viewConfig, this.map);
 
     /* todo
     this would be in the input controller

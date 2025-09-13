@@ -35,27 +35,29 @@ class Map {
     this.full[this.getIndex(
       Math.floor(this.spaces / 2),
       Math.floor(this.spaces / 2),
+      Math.floor(this.spaces / 2),
       Math.floor(this.spaces / 2)
     )] = '.';
   }
 
-  getIndex(x, y, z) {
-    return x + (y * this.spaces) + (z * this.spaces * this.spaces);
+  getIndex(x, y, z, w) {
+    return x + (y * this.spaces) + (z * this.spaces * this.spaces) + (w * this.spaces * this.spaces * this.spaces);
   }
 
-  getSpaceContents(x, y, z) {
-    return this.full[this.getIndex(x, y, z)];
+  getSpaceContents(x, y, z, w) {
+    return this.full[this.getIndex(x, y, z, w)];
   }
 
-  isSpaceInBounds({x, y, z}) {
+  isSpaceInBounds({x, y, z, w}) {
     return (
       x >= 0 && x <= this.spaces - 1 &&
       y >= 0 && y <= this.spaces - 1 &&
-      z >= 0 && z <= this.spaces - 1
+      z >= 0 && z <= this.spaces - 1 &&
+      w >= 0 && w <= this.spaces - 1
     );
   }
 
-  isSpaceOpen({x, y, z}) {
-    return this.getSpaceContents(x, y, z) === '.';
+  isSpaceOpen({x, y, z, w}) {
+    return this.getSpaceContents(x, y, z, w) === '.';
   }
 }

@@ -200,7 +200,7 @@ export class ScreenPainter {
     );
 
     this.ctx.fillText(
-      `[ x: ${this.state.player.x}, y: ${this.state.player.y}, z: ${this.state.player.z} ]`,
+      `[ x: ${this.state.player.x}, y: ${this.state.player.y}, z: ${this.state.player.z}, w: ${this.state.player.w} ]`,
       this.viewConfig.infoPanel.x + coordsStart,
       this.viewConfig.infoPanel.y + (this.viewConfig.infoPanel.height / 2)
     );

@@ -1,8 +1,4 @@
 export class DisplayManager {
-  /*
-  Make this the display manager
-  change the displayer manager to screen painter
-  */
   constructor(spaces, dimensions) {
     this.map = { spaces, dimensions, clearMargin: 5 };
     this.infoPanel = { x: 0, y: 0, width: 0, height: 0 };

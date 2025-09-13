@@ -1,11 +1,6 @@
 import { MapBuilder } from './map-builder.js';
 import { ScreenPainter } from './screen-painter.js';
 import { DisplayManager } from './display-manager.js';
-import { Colors } from './helpers.js'
-
-// this belongs in the view
-const canvas = document.getElementById('main-canvas');
-const ctx = canvas.getContext('2d');
 
 const displayManager = new DisplayManager(11, 3);
 
@@ -26,69 +21,27 @@ const state = {
   yzPlane: { dirty: true },
 };
 
-// view
-const drawLines = (lines, color, lineWidth) => {
-  ctx.strokeStyle = color;
-  ctx.lineWidth = lineWidth;
-  ctx.beginPath();
+const mapBuilder = new MapBuilder(displayManager);
+const map = mapBuilder.newMap();
+console.log(map);
 
-  lines.forEach(line => {
-    ctx.moveTo(line.xStart, line.yStart);
-    ctx.lineTo(line.xEnd, line.yEnd);
-  });
-
-  ctx.stroke();
-}
-
-// Maybe this lives in the view
-const resizeCanvas = () => {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-
-  // remember x y is starting location, width height is distance from x y, not location of the end point
-  const planeWidth = canvas.width / 3;
-  const planeHeight = canvas.height / 3;
-  const spaceSize = (canvas.height / 3) / (displayManager.map.spaces + 2); // fit the board plus a margin on each side equal to the space size
-  displayManager.updateInfoPanel({ x: 0, y: 0, width: canvas.width * 1, height: canvas.height * .05 });
-  displayManager.updateZXPlane({
-    x: 0,
-    y: displayManager.infoPanel.y + displayManager.infoPanel.height,
-    width: planeWidth,
-    height: planeHeight,
-    spacing: spaceSize,
-  });
-  displayManager.updateXYPlane({
-    x: planeWidth,
-    y: displayManager.infoPanel.y + displayManager.infoPanel.height,
-    width: planeWidth,
-    height: planeHeight,
-    spacing: spaceSize,
-  });
-  displayManager.updateYZPlane({
-    x: planeWidth * 2,
-    y: displayManager.infoPanel.y + displayManager.infoPanel.height,
-    width: planeWidth,
-    height: planeHeight,
-    spacing: spaceSize,
-  });
-
-  console.log(displayManager);
-
-  state.infoPanel.dirty = true;
-  state.zxPlane.dirty = true;
-  state.xyPlane.dirty = true;
-  state.yzPlane.dirty = true;
-}
+/* todo
+why does ScreenPainter get to be the boss?
+DisplayManager should have a screen painter and manage it
+*/
+const screenPainter = new ScreenPainter(state, displayManager, map);
 
 const isSpaceOpen = (x, y, z) => {
   return map.getSpaceContents(x, y, z) === '.';
 }
 
-// this should go to an input controller
-// then Game can be out here and hold logic
-// Game shouldn't require a view or inputs, it should still work.
-// it's really just kniwing that it has to be key a
-// let the input controller say there was a move x up, or move y down move event and Game here updates the state
+/* todo
+this should go to an input controller
+then Game can be out here and hold logic
+Game shouldn't require a view or inputs, it should still work.
+it's really just kniwing that it has to be key a
+let the input controller say there was a move x up, or move y down move event and Game here updates the state
+*/
 const handleMove = (key) => {
   if (key === 'a' && state.player.x > 0 && isSpaceOpen(state.player.x - 1, state.player.y, state.player.z)) {
     state.player.x--;
@@ -135,25 +88,6 @@ const handleClick = (event) => {
   state.infoPanel.dirty = true;
 };
 
-const init = () => {
-  // draw area borders that won't need repainting
-  const infoBorder = {
-    xStart: displayManager.infoPanel.x,
-    yStart: displayManager.infoPanel.height,
-    xEnd: displayManager.infoPanel.x + displayManager.infoPanel.width,
-    yEnd: displayManager.infoPanel.height,
-  }
-
-  const xyBorder = {
-    xStart: displayManager.xyPlane.x,
-    yStart: displayManager.infoPanel.height + displayManager.xyPlane.height,
-    xEnd: displayManager.xyPlane.x + displayManager.xyPlane.width,
-    yEnd: displayManager.infoPanel.height + displayManager.xyPlane.height,
-  }
-
-  drawLines([infoBorder, xyBorder], Colors.black, 2);
-};
-
 const update = (delta) => {
   // time since last update in milliseconds
   const updatedFps = Math.round(1000 / delta);
@@ -163,26 +97,18 @@ const update = (delta) => {
   }
 };
 
-// this would be in the input controller
-// Game would subscribe to events Move, Inspect, Resize
-// Maybe not resize, we may need to move the Canvas itself into the view. Then game never cares about a resize, the view captures the event because it owns the canvas, and then makes the change
-window.addEventListener('resize', resizeCanvas);
+/* todo
+this would be in the input controller
+Game would subscribe to events Move, Inspect, Resize
+Maybe not resize, we may need to move the Canvas itself into the view. Then game never cares about a resize, the view captures the event because it owns the canvas, and then makes the change
+*/
+window.addEventListener('resize', screenPainter.resizeCanvas);
 window.addEventListener('keydown', event => handleMove(event.key));
 window.addEventListener('click', event => handleClick(event));
 
-resizeCanvas();
-
-// this is the correct way
-const mapBuilder = new MapBuilder(displayManager);
-const map = mapBuilder.newMap();
-console.log(map);
-
-// why does ScreenPainter get to be the boss?
-// DisplayManager should have a screen painter and manage it
-const screenPainter = new ScreenPainter(state, displayManager, ctx, map);
+screenPainter.resizeCanvas();
 
 window.onload = () => {
-  init();
   let mainLoopUpdateLast = performance.now();
   (function mainLoop(nowTime) {
     update(nowTime - mainLoopUpdateLast);

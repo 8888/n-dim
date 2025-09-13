@@ -1,11 +1,13 @@
 import { Colors } from './helpers.js'
 
 export class ScreenPainter {
-  constructor(state, viewConfig, ctx, map) {
+  constructor(state, viewConfig, map) {
     this.state = state;
     this.viewConfig = viewConfig;
-    this.ctx = ctx;
     this.map = map;
+
+    this.canvas = document.getElementById('main-canvas');
+    this.ctx = this.canvas.getContext('2d');
   }
 
   render() {
@@ -15,8 +17,65 @@ export class ScreenPainter {
     this.yzPlane();
   }
 
+  resizeCanvas() {
+    this.canvas.width = window.innerWidth;
+    this.canvas.height = window.innerHeight;
+
+    // remember x y is starting location, width height is distance from x y, not location of the end point
+    const planeWidth = this.canvas.width / 3;
+    const planeHeight = this.canvas.height / 3;
+    const spaceSize = (this.canvas.height / 3) / (this.viewConfig.map.spaces + 2); // fit the board plus a margin on each side equal to the space size
+    this.viewConfig.updateInfoPanel({ x: 0, y: 0, width: this.canvas.width * 1, height: this.canvas.height * .05 });
+    this.viewConfig.updateZXPlane({
+      x: 0,
+      y: this.viewConfig.infoPanel.y + this.viewConfig.infoPanel.height,
+      width: planeWidth,
+      height: planeHeight,
+      spacing: spaceSize,
+    });
+    this.viewConfig.updateXYPlane({
+      x: planeWidth,
+      y: this.viewConfig.infoPanel.y + this.viewConfig.infoPanel.height,
+      width: planeWidth,
+      height: planeHeight,
+      spacing: spaceSize,
+    });
+    this.viewConfig.updateYZPlane({
+      x: planeWidth * 2,
+      y: this.viewConfig.infoPanel.y + this.viewConfig.infoPanel.height,
+      width: planeWidth,
+      height: planeHeight,
+      spacing: spaceSize,
+    });
+
+    console.log(this.viewConfig);
+
+    this.state.infoPanel.dirty = true;
+    this.state.zxPlane.dirty = true;
+    this.state.xyPlane.dirty = true;
+    this.state.yzPlane.dirty = true;
+  }
+
   isSpaceOpen(x, y, z) {
     return this.map.getSpaceContents(x, y, z) === '.';
+  }
+
+  drawStaticBorders() {
+    const infoBorder = {
+      xStart: this.viewConfig.infoPanel.x,
+      yStart: this.viewConfig.infoPanel.height,
+      xEnd: this.viewConfig.infoPanel.x + this.viewConfig.infoPanel.width,
+      yEnd: this.viewConfig.infoPanel.height,
+    }
+
+    const xyBorder = {
+      xStart: this.viewConfig.xyPlane.x,
+      yStart: this.viewConfig.infoPanel.height + this.viewConfig.xyPlane.height,
+      xEnd: this.viewConfig.xyPlane.x + this.viewConfig.xyPlane.width,
+      yEnd: this.viewConfig.infoPanel.height + this.viewConfig.xyPlane.height,
+    }
+
+    this.drawLines([infoBorder, xyBorder], Colors.black, 2);
   }
 
   drawPlayer(plane, xLoc, yLoc, leftMargin, topMargin, spaceSize) {

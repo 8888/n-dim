@@ -21,10 +21,11 @@ export class ScreenPainter {
     window.addEventListener('resize', this.resizeCanvas);
 
     this.eventBus.subscribe(Events.movePlayer, event => this.handleMove(event));
+    this.eventBus.subscribe(Events.inspectPoint, () => this.viewConfig.infoPanel.dirty = true);
   }
 
   render() {
-    this.infoPanel();
+    this.drawInfoPanel();
     if (this.viewConfig.zxPlane.dirty) this.drawPlane(this.viewConfig.zxPlane);
     if (this.viewConfig.xyPlane.dirty) this.drawPlane(this.viewConfig.xyPlane);
     if (this.viewConfig.yzPlane.dirty) this.drawPlane(this.viewConfig.yzPlane);
@@ -63,7 +64,6 @@ export class ScreenPainter {
 
     console.log(this.viewConfig);
 
-    this.state.infoPanel.dirty = true;
     this.viewConfig.zxPlane.dirty = true;
     this.viewConfig.xyPlane.dirty = true;
     this.viewConfig.yzPlane.dirty = true;
@@ -71,6 +71,7 @@ export class ScreenPainter {
 
   // todo: will they all always be dirty? probably right?
   handleMove({from, to, dimension, distance}) {
+    this.viewConfig.infoPanel.dirty = true;
     this.viewConfig.zxPlane.dirty = true;
     this.viewConfig.xyPlane.dirty = true;
     this.viewConfig.yzPlane.dirty = true;
@@ -185,9 +186,7 @@ export class ScreenPainter {
     this.drawLines(grid, Colors.black, 1);
   };
 
-  infoPanel() {
-    if (!this.state.infoPanel.dirty) return;
-
+  drawInfoPanel() {
     // indent all clears to avoid aliasing border lines due to thickness
     this.ctx.clearRect(
       this.viewConfig.infoPanel.x + this.viewConfig.map.clearMargin,
@@ -219,8 +218,6 @@ export class ScreenPainter {
       this.viewConfig.infoPanel.x + cursorStart,
       this.viewConfig.infoPanel.y + (this.viewConfig.infoPanel.height / 2)
     );
-
-    this.state.infoPanel.dirty = false;
   }
 
   drawPlane(planeLayout) {

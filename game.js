@@ -12,7 +12,6 @@ export class Game {
 
     this.state = {
       infoPanel: {
-        dirty: true,
         fps: 0,
         mouseX: 0,
         mouseY: 0,
@@ -52,24 +51,17 @@ export class Game {
       });
 
       this.state.player[dimension] += distance;
-
-      this.state.infoPanel.dirty = true
     }
   }
 
   handleInspect({x, y}) {
     this.state.infoPanel.mouseX = x;
     this.state.infoPanel.mouseY = y;
-    this.state.infoPanel.dirty = true;
   };
 
   update(delta) {
     // time since last update in milliseconds
-    const updatedFps = Math.round(1000 / delta);
-    if (this.state.infoPanel.fps != updatedFps) {
-      this.state.infoPanel.fps = updatedFps;
-      this.state.infoPanel.dirty = true;
-    }
+    this.state.infoPanel.fps = Math.round(1000 / delta);
   };
 
   display() {

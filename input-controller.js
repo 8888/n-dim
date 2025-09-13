@@ -8,6 +8,7 @@ export class InputController {
     window.addEventListener('click', event => this.handleClick(event));
   }
 
+  // todo: make keystrokes configurable
   handleKeyDown(key) {
     if (key === 'a') {
       this.eventBus.publish(Events.requestMove, {dimension: 'x', distance: -1});
@@ -21,9 +22,9 @@ export class InputController {
       this.eventBus.publish(Events.requestMove, {dimension: 'z', distance: -1});
     } else if (key === 'e') {
       this.eventBus.publish(Events.requestMove, {dimension: 'z', distance: 1});
-    } else if (key === 'r') {
+    } else if (key === 'f' || key === 'z') {
       this.eventBus.publish(Events.requestMove, {dimension: 'w', distance: -1});
-    } else if (key === 'f') {
+    } else if (key === 'r' || key === 'c') {
       this.eventBus.publish(Events.requestMove, {dimension: 'w', distance: 1});
     }
   }

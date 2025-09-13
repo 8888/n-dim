@@ -1,10 +1,14 @@
+import { ViewConfig } from './view-config.js';
 import { Colors } from './helpers.js'
 
 export class ScreenPainter {
-  constructor(state, viewConfig, map) {
+  constructor(state, map, spaces, dimensions) {
     this.state = state;
-    this.viewConfig = viewConfig;
     this.map = map;
+    this.spaces = spaces;
+    this.dimensions = dimensions;
+
+    this.viewConfig = new ViewConfig(this.spaces, this.dimensions);
 
     this.canvas = document.getElementById('main-canvas');
     this.ctx = this.canvas.getContext('2d');
@@ -27,7 +31,7 @@ export class ScreenPainter {
     // remember x y is starting location, width height is distance from x y, not location of the end point
     const planeWidth = this.canvas.width / 3;
     const planeHeight = this.canvas.height / 3;
-    const spaceSize = (this.canvas.height / 3) / (this.viewConfig.map.spaces + 2); // fit the board plus a margin on each side equal to the space size
+    const spaceSize = (this.canvas.height / 3) / (this.spaces + 2); // fit the board plus a margin on each side equal to the space size
     this.viewConfig.updateInfoPanel({ x: 0, y: 0, width: this.canvas.width * 1, height: this.canvas.height * .05 });
     this.viewConfig.updateZXPlane({
       x: 0,
@@ -111,10 +115,10 @@ export class ScreenPainter {
   drawHelperAxis(plane, leftMargin, topMargin, spaceSize, horizColor, horizText, vertColor, vertText) {
     // x axis
     const horizontal = {
-      xStart: plane.x + (leftMargin * 2) + this.viewConfig.map.spaces * spaceSize,
-      yStart: plane.y + topMargin + spaceSize * this.viewConfig.map.spaces,
-      xEnd: plane.x + (leftMargin * 2) + (this.viewConfig.map.spaces * 1.5) * spaceSize,
-      yEnd: plane.y + topMargin + spaceSize * this.viewConfig.map.spaces,
+      xStart: plane.x + (leftMargin * 2) + this.spaces * spaceSize,
+      yStart: plane.y + topMargin + spaceSize * this.spaces,
+      xEnd: plane.x + (leftMargin * 2) + (this.spaces * 1.5) * spaceSize,
+      yEnd: plane.y + topMargin + spaceSize * this.spaces,
     };
 
     this.drawLines([horizontal], horizColor, 1);
@@ -125,10 +129,10 @@ export class ScreenPainter {
 
     //  y axis
     const verticle = {
-      xStart: plane.x + (leftMargin * 2) + this.viewConfig.map.spaces * spaceSize,
-      yStart: plane.y + topMargin + spaceSize * this.viewConfig.map.spaces,
-      xEnd: plane.x + (leftMargin * 2) + this.viewConfig.map.spaces * spaceSize,
-      yEnd: plane.y + topMargin + spaceSize * (this.viewConfig.map.spaces / 2),
+      xStart: plane.x + (leftMargin * 2) + this.spaces * spaceSize,
+      yStart: plane.y + topMargin + spaceSize * this.spaces,
+      xEnd: plane.x + (leftMargin * 2) + this.spaces * spaceSize,
+      yEnd: plane.y + topMargin + spaceSize * (this.spaces / 2),
     };
 
     this.drawLines([verticle], vertColor, 1);
@@ -153,11 +157,11 @@ export class ScreenPainter {
 
   drawGrid(plane, leftMargin, topMargin, spaceSize) {
     const grid = [];
-    for (let i = 0; i < this.viewConfig.map.spaces + 1; i++) { // 11 lines for 10 space grid
+    for (let i = 0; i < this.spaces + 1; i++) { // 11 lines for 10 space grid
       grid.push({
         xStart: plane.x + leftMargin,
         yStart: plane.y + topMargin + spaceSize * i,
-        xEnd: plane.x + leftMargin + this.viewConfig.map.spaces * spaceSize,
+        xEnd: plane.x + leftMargin + this.spaces * spaceSize,
         yEnd: plane.y + topMargin + spaceSize * i,
       });
 
@@ -165,7 +169,7 @@ export class ScreenPainter {
         xStart: plane.x + leftMargin + spaceSize * i,
         yStart: plane.y + topMargin,
         xEnd: plane.x + leftMargin  + spaceSize * i,
-        yEnd: plane.y + topMargin + this.viewConfig.map.spaces * spaceSize,
+        yEnd: plane.y + topMargin + this.spaces * spaceSize,
       });
     }
 
@@ -231,16 +235,16 @@ export class ScreenPainter {
     // z is correct with zero left
     // invert x to have zero on bottom
     const xLoc = this.state.player.z;
-    const yLoc = this.viewConfig.map.spaces - 1 - this.state.player.x;
+    const yLoc = this.spaces - 1 - this.state.player.x;
     this.drawPlayer(this.viewConfig.zxPlane, xLoc, yLoc, leftMargin, topMargin, spaceSize);
 
-    for (let x = 0; x < this.viewConfig.map.spaces; x++) {
-      for (let z = 0; z < this.viewConfig.map.spaces; z++) {
+    for (let x = 0; x < this.spaces; x++) {
+      for (let z = 0; z < this.spaces; z++) {
         if (!this.isSpaceOpen(x, this.state.player.y, z)) {
           this.drawWall(
             this.viewConfig.zxPlane,
             z, // z is correct with zero left
-            this.viewConfig.map.spaces - 1 - x, // invert x to have zero on bottom
+            this.spaces - 1 - x, // invert x to have zero on bottom
             leftMargin,
             topMargin,
             spaceSize
@@ -284,16 +288,16 @@ export class ScreenPainter {
     // x is correct with zero left
     // invert y to have zero on bottom
     const xLoc = this.state.player.x;
-    const yLoc = this.viewConfig.map.spaces - 1 - this.state.player.y;
+    const yLoc = this.spaces - 1 - this.state.player.y;
     this.drawPlayer(this.viewConfig.xyPlane, xLoc, yLoc, leftMargin, topMargin, spaceSize);
 
-    for (let y = 0; y < this.viewConfig.map.spaces; y++) {
-      for (let x = 0; x < this.viewConfig.map.spaces; x++) {
+    for (let y = 0; y < this.spaces; y++) {
+      for (let x = 0; x < this.spaces; x++) {
         if (!this.isSpaceOpen(x, y, this.state.player.z)) {
           this.drawWall(
             this.viewConfig.xyPlane,
             x, // x is correct with zero left
-            this.viewConfig.map.spaces - 1 - y, // invert y to have zero on bottom
+            this.spaces - 1 - y, // invert y to have zero on bottom
             leftMargin,
             topMargin,
             spaceSize
@@ -336,16 +340,16 @@ export class ScreenPainter {
     // y is correct with zero left
     // invert z to have zero on bottom
     const yLoc = this.state.player.y;
-    const zLoc = this.viewConfig.map.spaces - 1 - this.state.player.z;
+    const zLoc = this.spaces - 1 - this.state.player.z;
     this.drawPlayer(this.viewConfig.yzPlane, yLoc, zLoc, leftMargin, topMargin, spaceSize);
 
-    for (let z = 0; z < this.viewConfig.map.spaces; z++) {
-      for (let y = 0; y < this.viewConfig.map.spaces; y++) {
+    for (let z = 0; z < this.spaces; z++) {
+      for (let y = 0; y < this.spaces; y++) {
         if (!this.isSpaceOpen(this.state.player.x, y, z)) {
           this.drawWall(
             this.viewConfig.yzPlane,
             y, // y is correct with zero left
-            this.viewConfig.map.spaces - 1 - z, // invert z to have zero on bottom
+            this.spaces - 1 - z, // invert z to have zero on bottom
             leftMargin,
             topMargin,
             spaceSize

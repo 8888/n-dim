@@ -148,7 +148,7 @@ export class ScreenPainter {
     this.ctx.textAlign = 'center';
     this.ctx.textBaseline = 'middle';
     this.ctx.fillText(letter, centerX, centerY);
-    
+
     // Reset alignment
     this.ctx.textAlign = 'start';
     this.ctx.textBaseline = 'alphabetic';
@@ -246,7 +246,7 @@ export class ScreenPainter {
 
     // Down key
     this.drawKey(downKey, keyCenterX, yCenter + spaceSize * 1.75, keySize, Colors.planeBackground, Colors.black);
-    
+
     this.ctx.textBaseline = 'alphabetic'; // reset
 
     const arrowSize = spaceSize * 0.75;
@@ -289,7 +289,7 @@ export class ScreenPainter {
     // Right key
     const rightKeyCenterX = xCenter + keyAndTextSpacing;
     this.drawKey(rightKey, rightKeyCenterX, indicatorY, keySize, Colors.planeBackground, Colors.black);
-    
+
     this.ctx.textAlign = 'start';
     this.ctx.textBaseline = 'alphabetic'; // reset
 

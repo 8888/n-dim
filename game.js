@@ -34,6 +34,9 @@ export class Game {
 
     this.eventBus.subscribe(Events.requestMove, event => this.handleMoveRequest(event));
     this.eventBus.subscribe(Events.inspectPoint, event => this.handleInspect(event));
+
+    this.fpsAccumulator = 0;
+    this.frames = 0;
   }
 
   isMoveValid(newSpace) {
@@ -63,7 +66,13 @@ export class Game {
 
   update(delta) {
     // time since last update in milliseconds
-    this.state.infoPanel.fps = Math.round(1000 / delta);
+    this.fpsAccumulator += delta;
+    this.frames++;
+    if (this.fpsAccumulator > 500) {
+      this.state.infoPanel.fps = Math.round((this.frames * 1000) / this.fpsAccumulator);
+      this.fpsAccumulator = 0;
+      this.frames = 0;
+    }
   };
 
   display() {

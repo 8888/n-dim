@@ -77,14 +77,7 @@ export class ScreenPainter {
       yEnd: this.viewConfig.infoPanel.height,
     }
 
-    const xyBorder = {
-      xStart: this.viewConfig.xyPlane.x,
-      yStart: this.viewConfig.infoPanel.height + this.viewConfig.xyPlane.height,
-      xEnd: this.viewConfig.xyPlane.x + this.viewConfig.xyPlane.width,
-      yEnd: this.viewConfig.infoPanel.height + this.viewConfig.xyPlane.height,
-    }
-
-    this.drawLines([infoBorder, xyBorder], Colors.black, 2);
+    this.drawLines([infoBorder], Colors.black, 2);
   }
 
   drawPlayer(plane, xLoc, yLoc, leftMargin, topMargin, spaceSize) {

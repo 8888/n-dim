@@ -79,7 +79,7 @@ export class ScreenPainter {
     // y = vertical axis
     // actual view on canvas, not player n-dim location
     // xLoc, yLoc are cell the player should be in from bottom left origin
-    this.ctx.fillStyle = Colors.blue;
+    this.ctx.fillStyle = Colors.player;
     this.ctx.strokeStyle = Colors.black;
     this.ctx.lineWidth = 2;
     this.ctx.beginPath();

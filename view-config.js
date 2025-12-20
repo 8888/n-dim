@@ -2,10 +2,10 @@ import { Colors } from './helpers.js'
 
 export class ViewConfig {
   colorMap = {
-    x: Colors.red,
-    y: Colors.green,
-    z: Colors.purple,
-    w: Colors.yellow,
+    x: Colors.xAxis,
+    y: Colors.yAxis,
+    z: Colors.zAxis,
+    w: Colors.wAxis,
   };
 
   constructor(spaces, dimensions) {

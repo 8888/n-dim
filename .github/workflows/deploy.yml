@@ -30,14 +30,29 @@ jobs:
         name: n-dim-build
         path: dist/
 
+    - name: Azure Login
+    - uses: azure/login@v2
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
     - name: Deploy to Azure Storage
       if: success()
-      uses: azure/cli@v1
+      uses: azure/cli@v2
       with:
         inlineScript: |
           az storage blob upload-batch \
             --account-name "finnminnstorage" \
             --destination "\$web/n-dim" \
             --source dist/ \
-            --overwrite \
-            --connection-string "${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}"
+            --overwrite
+
+    - name: Purge CDN endpoint
+      if: success()
+      uses: azure/cli@v2
+      with:
+        inlineScript: |
+          az cdn endpoint purge \
+            --resource-group finnminn-rg \
+            --profile-name finnminn-fd-profile \
+            --name finnminn-site-hsfwgzehcqe2bdew.z02.azurefd.net \
+            --content-paths "/n-dim/*"

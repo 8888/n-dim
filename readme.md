@@ -1,6 +1,8 @@
+[https://www.finnminn.com/n-dim/](https://www.finnminn.com/n-dim/)
+
 You are navigating a 4-dimensional space, but only have 2-dimensional slices of a plane through the space as your view.
 
-![alt text](image.png)
+![Screenshot showing the game](image.png)
 
 ## Controls
 

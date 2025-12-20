@@ -16,7 +16,7 @@ export class ScreenPainter {
     this.ctx = this.canvas.getContext('2d');
     this.resizeCanvas();
 
-    this.drawStaticBorders();
+
 
     window.addEventListener('resize', this.resizeCanvas);
 
@@ -26,6 +26,9 @@ export class ScreenPainter {
   }
 
   render() {
+    this.ctx.fillStyle = Colors.screenBackground;
+    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
     this.drawInfoPanel();
     this.viewConfig.allPlanes.forEach(plane => this.drawPlane(plane));
   }
@@ -69,16 +72,7 @@ export class ScreenPainter {
     this.viewConfig.yzPlane.dirty = true;
   }
 
-  drawStaticBorders() {
-    const infoBorder = {
-      xStart: this.viewConfig.infoPanel.x,
-      yStart: this.viewConfig.infoPanel.height,
-      xEnd: this.viewConfig.infoPanel.x + this.viewConfig.infoPanel.width,
-      yEnd: this.viewConfig.infoPanel.height,
-    }
 
-    this.drawLines([infoBorder], Colors.black, 2);
-  }
 
   drawPlayer(plane, xLoc, yLoc, leftMargin, topMargin, spaceSize) {
     // x = horizontal axis
@@ -86,6 +80,8 @@ export class ScreenPainter {
     // actual view on canvas, not player n-dim location
     // xLoc, yLoc are cell the player should be in from bottom left origin
     this.ctx.fillStyle = Colors.blue;
+    this.ctx.strokeStyle = Colors.black;
+    this.ctx.lineWidth = 2;
     this.ctx.beginPath();
     this.ctx.arc(
       plane.x + leftMargin + (spaceSize / 2) + (spaceSize * xLoc),
@@ -95,16 +91,32 @@ export class ScreenPainter {
       2 * Math.PI,
     );
     this.ctx.fill();
+    this.ctx.stroke();
   };
 
   drawWall(plane, xLoc, yLoc, leftMargin, topMargin, spaceSize) {
+    const wallX = plane.x + leftMargin + (spaceSize * xLoc);
+    const wallY = plane.y + topMargin + (spaceSize * yLoc);
+    const cornerRadius = spaceSize * 0.2; // Adjust for more or less rounded corners
+
     this.ctx.fillStyle = Colors.gray;
-    this.ctx.fillRect(
-      plane.x + leftMargin + (spaceSize * xLoc),
-      plane.y + topMargin + (spaceSize * yLoc),
-      spaceSize,
-      spaceSize
-    )
+    this.ctx.strokeStyle = Colors.black;
+    this.ctx.lineWidth = 1;
+
+    this.ctx.beginPath();
+    this.ctx.moveTo(wallX + cornerRadius, wallY);
+    this.ctx.lineTo(wallX + spaceSize - cornerRadius, wallY);
+    this.ctx.quadraticCurveTo(wallX + spaceSize, wallY, wallX + spaceSize, wallY + cornerRadius);
+    this.ctx.lineTo(wallX + spaceSize, wallY + spaceSize - cornerRadius);
+    this.ctx.quadraticCurveTo(wallX + spaceSize, wallY + spaceSize, wallX + spaceSize - cornerRadius, wallY + spaceSize);
+    this.ctx.lineTo(wallX + cornerRadius, wallY + spaceSize);
+    this.ctx.quadraticCurveTo(wallX, wallY + spaceSize, wallX, wallY + spaceSize - cornerRadius);
+    this.ctx.lineTo(wallX, wallY + cornerRadius);
+    this.ctx.quadraticCurveTo(wallX, wallY, wallX + cornerRadius, wallY);
+    this.ctx.closePath();
+
+    this.ctx.fill();
+    this.ctx.stroke();
   }
 
   drawHelperAxis(plane, leftMargin, topMargin, spaceSize, horizColor, horizText, vertColor, vertText) {
@@ -151,6 +163,14 @@ export class ScreenPainter {
   }
 
   drawGrid(plane, leftMargin, topMargin, spaceSize) {
+    this.ctx.fillStyle = Colors.planeBackground;
+    this.ctx.fillRect(
+      plane.x + leftMargin,
+      plane.y + topMargin,
+      this.spaces * spaceSize,
+      this.spaces * spaceSize
+    );
+
     const grid = [];
     for (let i = 0; i < this.spaces + 1; i++) { // 11 lines for 10 space grid
       grid.push({
@@ -168,16 +188,25 @@ export class ScreenPainter {
       });
     }
 
-    this.drawLines(grid, Colors.black, 1);
+    this.drawLines(grid, Colors.gray, 1);
+
+    this.ctx.strokeStyle = Colors.black;
+    this.ctx.lineWidth = 1;
+    this.ctx.strokeRect(
+      plane.x + leftMargin,
+      plane.y + topMargin,
+      this.spaces * spaceSize,
+      this.spaces * spaceSize
+    );
   };
 
   drawInfoPanel() {
-    // indent all clears to avoid aliasing border lines due to thickness
-    this.ctx.clearRect(
-      this.viewConfig.infoPanel.x + this.viewConfig.map.clearMargin,
-      this.viewConfig.infoPanel.y + this.viewConfig.map.clearMargin,
-      this.viewConfig.infoPanel.width - this.viewConfig.map.clearMargin * 2,
-      this.viewConfig.infoPanel.height - this.viewConfig.map.clearMargin * 2
+    this.ctx.fillStyle = Colors.infoPanel;
+    this.ctx.fillRect(
+      this.viewConfig.infoPanel.x,
+      this.viewConfig.infoPanel.y,
+      this.viewConfig.infoPanel.width,
+      this.viewConfig.infoPanel.height
     );
 
     const fpsStart = 20;
@@ -206,27 +235,23 @@ export class ScreenPainter {
   }
 
   drawPlane(planeLayout) {
-    // indent all clears to avoid aliasing border lines due to thickness
-    this.ctx.clearRect(
-      planeLayout.x + this.viewConfig.map.clearMargin,
-      planeLayout.y + this.viewConfig.map.clearMargin,
-      planeLayout.width - this.viewConfig.map.clearMargin * 2,
-      planeLayout.height - this.viewConfig.map.clearMargin * 2
-    );
-
     const leftMargin = planeLayout.spacing;
     const topMargin = planeLayout.spacing;
     const spaceSize = planeLayout.spacing;
 
+    this.drawHelperAxis(
+      planeLayout,
+      leftMargin,
+      topMargin,
+      spaceSize,
+      this.viewConfig.colorMap[planeLayout.horzAxis],
+      `${planeLayout.horzAxis}: ${this.state.player[planeLayout.horzAxis]}`,
+      this.viewConfig.colorMap[planeLayout.vertAxis],
+      `${planeLayout.vertAxis}: ${this.state.player[planeLayout.vertAxis]}`,
+    );
+
     // todo: we are passing the layout and then a prop from the layout 3 times
     this.drawGrid(planeLayout, leftMargin, topMargin, spaceSize);
-
-    // draw player
-    // horizontal x Axis is correct with zero left
-    // invert vertical y axis to have zero on bottom
-    const xLoc = this.state.player[planeLayout.horzAxis];
-    const yLoc = this.spaces - 1 - this.state.player[planeLayout.vertAxis];
-    this.drawPlayer(planeLayout, xLoc, yLoc, leftMargin, topMargin, spaceSize);
 
     for (let vert = 0; vert < this.spaces; vert++) {
       for (let horz = 0; horz < this.spaces; horz++) {
@@ -246,16 +271,12 @@ export class ScreenPainter {
       }
     }
 
-    this.drawHelperAxis(
-      planeLayout,
-      leftMargin,
-      topMargin,
-      spaceSize,
-      this.viewConfig.colorMap[planeLayout.horzAxis],
-      `${planeLayout.horzAxis}: ${this.state.player[planeLayout.horzAxis]}`,
-      this.viewConfig.colorMap[planeLayout.vertAxis],
-      `${planeLayout.vertAxis}: ${this.state.player[planeLayout.vertAxis]}`,
-    );
+    // draw player
+    // horizontal x Axis is correct with zero left
+    // invert vertical y axis to have zero on bottom
+    const xLoc = this.state.player[planeLayout.horzAxis];
+    const yLoc = this.spaces - 1 - this.state.player[planeLayout.vertAxis];
+    this.drawPlayer(planeLayout, xLoc, yLoc, leftMargin, topMargin, spaceSize);
 
     planeLayout.dirty = false;
   }

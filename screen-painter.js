@@ -194,49 +194,9 @@ export class ScreenPainter {
     };
 
     if (plane.vertAxis === 'x' && plane.horzAxis === 'z') { // this is specific to zxPlane
-      // The newly extended axis line should extend upwards until it is at the same height as the play field to its left
-      const extendedYEnd = plane.y + topMargin;
-      const line = {xStart: verticle.xEnd, yStart: verticle.yStart, xEnd: verticle.xEnd, yEnd: extendedYEnd };
-      this.drawLines([line], vertColor, 2);
-
-      const yCenter = (extendedYEnd + verticle.yStart) / 2;
-
-      // x: loc indicator should have some space on the left side so it not touching the axis line
-      const textX = verticle.xEnd + spaceSize / 2;
-
-      this.ctx.fillStyle = vertColor;
-      this.ctx.textBaseline = 'middle';
-
-      // The A and Q key indicator should be spaced a bit above and below the x indicator, not at the ends of the axis
-      const keySize = spaceSize * 1.5;
-      const keyCenterX = textX + keySize / 2;
-      // Q key
-      this.drawKey('Q', keyCenterX, yCenter - spaceSize * 1.75, keySize, Colors.planeBackground, Colors.black);
-
-      // x: loc
-      this.ctx.font = `${spaceSize}px Verdana`;
-      this.ctx.fillStyle = vertColor;
-      this.ctx.fillText(vertText, textX, yCenter);
-
-      // A key
-      this.drawKey('A', keyCenterX, yCenter + spaceSize * 1.6, keySize, Colors.planeBackground, Colors.black);
-      
-      this.ctx.textBaseline = 'alphabetic'; // reset
-
-      const arrowSize = spaceSize * 0.75;
-      const arrowGap = spaceSize * 0.25;
-
-      // Up arrow above Q
-      const qKeyTop = (yCenter - spaceSize * 1.75) - keySize / 2;
-      const upArrowCenterY = qKeyTop - arrowGap - arrowSize / 2;
-      this.drawArrow(keyCenterX, upArrowCenterY, arrowSize, 'up', vertColor);
-
-      // Down arrow below A
-      const aKeyBottom = (yCenter + spaceSize * 1.6) + keySize / 2;
-      const downArrowCenterY = aKeyBottom + arrowGap + arrowSize / 2;
-      this.drawArrow(keyCenterX, downArrowCenterY, arrowSize, 'down', vertColor);
-
-
+      this._drawVerticalAxisWithIndicators(plane, topMargin, spaceSize, verticle, vertColor, vertText, 'Q', 'A');
+    } else if (plane.vertAxis === 'y' && plane.horzAxis === 'x') { // this is specific to xyPlane
+      this._drawVerticalAxisWithIndicators(plane, topMargin, spaceSize, verticle, vertColor, vertText, 'W', 'S');
     } else {
       this.drawLines([verticle], vertColor, 2);
 
@@ -245,6 +205,50 @@ export class ScreenPainter {
       this.ctx.fillText(vertText, verticle.xEnd + spaceSize/2, verticle.yStart - spaceSize * 2.5);
     }
   };
+
+  _drawVerticalAxisWithIndicators(plane, topMargin, spaceSize, verticle, vertColor, vertText, upKey, downKey) {
+    // The newly extended axis line should extend upwards until it is at the same height as the play field to its left
+    const extendedYEnd = plane.y + topMargin;
+    const line = {xStart: verticle.xEnd, yStart: verticle.yStart, xEnd: verticle.xEnd, yEnd: extendedYEnd };
+    this.drawLines([line], vertColor, 2);
+
+    const yCenter = (extendedYEnd + verticle.yStart) / 2;
+
+    // x: loc indicator should have some space on the left side so it not touching the axis line
+    const textX = verticle.xEnd + spaceSize / 2;
+
+    this.ctx.fillStyle = vertColor;
+    this.ctx.textBaseline = 'middle';
+
+    // The A and Q key indicator should be spaced a bit above and below the x indicator, not at the ends of the axis
+    const keySize = spaceSize * 1.5;
+    const keyCenterX = textX + keySize / 2;
+    // Up key
+    this.drawKey(upKey, keyCenterX, yCenter - spaceSize * 1.75, keySize, Colors.planeBackground, Colors.black);
+
+    // axis text
+    this.ctx.font = `${spaceSize}px Verdana`;
+    this.ctx.fillStyle = vertColor;
+    this.ctx.fillText(vertText, textX, yCenter);
+
+    // Down key
+    this.drawKey(downKey, keyCenterX, yCenter + spaceSize * 1.75, keySize, Colors.planeBackground, Colors.black);
+    
+    this.ctx.textBaseline = 'alphabetic'; // reset
+
+    const arrowSize = spaceSize * 0.75;
+    const arrowGap = spaceSize * 0.25;
+
+    // Up arrow above Q
+    const upKeyTop = (yCenter - spaceSize * 1.75) - keySize / 2;
+    const upArrowCenterY = upKeyTop - arrowGap - arrowSize / 2;
+    this.drawArrow(keyCenterX, upArrowCenterY, arrowSize, 'up', vertColor);
+
+    // Down arrow below A
+    const downKeyBottom = (yCenter + spaceSize * 1.75) + keySize / 2;
+    const downArrowCenterY = downKeyBottom + arrowGap + arrowSize / 2;
+    this.drawArrow(keyCenterX, downArrowCenterY, arrowSize, 'down', vertColor);
+  }
 
   drawLines(lines, color, lineWidth) {
     this.ctx.strokeStyle = color;

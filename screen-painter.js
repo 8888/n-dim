@@ -197,6 +197,8 @@ export class ScreenPainter {
       this._drawVerticalAxisWithIndicators(plane, topMargin, spaceSize, verticle, vertColor, vertText, 'Q', 'A');
     } else if (plane.vertAxis === 'y' && plane.horzAxis === 'x') { // this is specific to xyPlane
       this._drawVerticalAxisWithIndicators(plane, topMargin, spaceSize, verticle, vertColor, vertText, 'W', 'S');
+    } else if (plane.vertAxis === 'z' && plane.horzAxis === 'y') { // this is specific to yzPlane
+      this._drawVerticalAxisWithIndicators(plane, topMargin, spaceSize, verticle, vertColor, vertText, 'E', 'D');
     } else {
       this.drawLines([verticle], vertColor, 2);
 

@@ -142,11 +142,42 @@ export class ScreenPainter {
       yEnd: plane.y + topMargin + spaceSize * (this.spaces / 2),
     };
 
-    this.drawLines([verticle], vertColor, 2);
+    if (plane.vertAxis === 'x' && plane.horzAxis === 'z') { // this is specific to zxPlane
+      // The newly extended axis line should extend upwards until it is at the same height as the play field to its left
+      const extendedYEnd = plane.y + topMargin;
+      const line = {xStart: verticle.xEnd, yStart: verticle.yStart, xEnd: verticle.xEnd, yEnd: extendedYEnd };
+      this.drawLines([line], vertColor, 2);
 
-    this.ctx.fillStyle = vertColor;
-    this.ctx.font = `${spaceSize}px Verdana`;
-    this.ctx.fillText(vertText, verticle.xEnd + spaceSize/2, verticle.yStart - spaceSize * 2.5);
+      const yCenter = (extendedYEnd + verticle.yStart) / 2;
+
+      // x: loc indicator should have some space on the left side so it not touching the axis line
+      const textX = verticle.xEnd + spaceSize / 2;
+
+      this.ctx.fillStyle = vertColor;
+      this.ctx.textBaseline = 'middle';
+
+      // The A and Q key indicator should be spaced a bit above and below the x indicator, not at the ends of the axis
+      // Q key
+      this.ctx.font = `bold ${spaceSize}px Verdana`;
+      this.ctx.fillText('Q', textX, yCenter - spaceSize * 2);
+
+      // x: loc
+      this.ctx.font = `${spaceSize}px Verdana`;
+      this.ctx.fillText(vertText, textX, yCenter);
+
+      // A key
+      this.ctx.font = `bold ${spaceSize}px Verdana`;
+      this.ctx.fillText('A', textX, yCenter + spaceSize * 2);
+      
+      this.ctx.textBaseline = 'alphabetic'; // reset
+
+    } else {
+      this.drawLines([verticle], vertColor, 2);
+
+      this.ctx.fillStyle = vertColor;
+      this.ctx.font = `${spaceSize}px Verdana`;
+      this.ctx.fillText(vertText, verticle.xEnd + spaceSize/2, verticle.yStart - spaceSize * 2.5);
+    }
   };
 
   drawLines(lines, color, lineWidth) {

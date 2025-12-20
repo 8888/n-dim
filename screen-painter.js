@@ -119,6 +119,57 @@ export class ScreenPainter {
     this.ctx.stroke();
   }
 
+  drawKey(letter, centerX, centerY, size, keyColor, textColor) {
+    const cornerRadius = size * 0.2;
+    const keyX = centerX - size / 2;
+    const keyY = centerY - size / 2;
+
+    this.ctx.fillStyle = keyColor;
+    this.ctx.strokeStyle = Colors.black;
+    this.ctx.lineWidth = 1;
+
+    this.ctx.beginPath();
+    this.ctx.moveTo(keyX + cornerRadius, keyY);
+    this.ctx.lineTo(keyX + size - cornerRadius, keyY);
+    this.ctx.quadraticCurveTo(keyX + size, keyY, keyX + size, keyY + cornerRadius);
+    this.ctx.lineTo(keyX + size, keyY + size - cornerRadius);
+    this.ctx.quadraticCurveTo(keyX + size, keyY + size, keyX + size - cornerRadius, keyY + size);
+    this.ctx.lineTo(keyX + cornerRadius, keyY + size);
+    this.ctx.quadraticCurveTo(keyX, keyY + size, keyX, keyY + size - cornerRadius);
+    this.ctx.lineTo(keyX, keyY + cornerRadius);
+    this.ctx.quadraticCurveTo(keyX, keyY, keyX + cornerRadius, keyY);
+    this.ctx.closePath();
+
+    this.ctx.fill();
+    this.ctx.stroke();
+
+    this.ctx.fillStyle = textColor;
+    this.ctx.font = `bold ${size * 0.6}px Verdana`;
+    this.ctx.textAlign = 'center';
+    this.ctx.textBaseline = 'middle';
+    this.ctx.fillText(letter, centerX, centerY);
+    
+    // Reset alignment
+    this.ctx.textAlign = 'start';
+    this.ctx.textBaseline = 'alphabetic';
+  }
+
+  drawArrow(centerX, centerY, size, direction, color) {
+    this.ctx.fillStyle = color;
+    this.ctx.beginPath();
+    if (direction === 'up') {
+      this.ctx.moveTo(centerX, centerY - size / 2);
+      this.ctx.lineTo(centerX + size / 2, centerY + size / 2);
+      this.ctx.lineTo(centerX - size / 2, centerY + size / 2);
+    } else { // down
+      this.ctx.moveTo(centerX, centerY + size / 2);
+      this.ctx.lineTo(centerX + size / 2, centerY - size / 2);
+      this.ctx.lineTo(centerX - size / 2, centerY - size / 2);
+    }
+    this.ctx.closePath();
+    this.ctx.fill();
+  }
+
   drawHelperAxis(plane, leftMargin, topMargin, spaceSize, horizColor, horizText, vertColor, vertText) {
     // x axis
     const horizontal = {
@@ -157,19 +208,34 @@ export class ScreenPainter {
       this.ctx.textBaseline = 'middle';
 
       // The A and Q key indicator should be spaced a bit above and below the x indicator, not at the ends of the axis
+      const keySize = spaceSize * 1.5;
+      const keyCenterX = textX + keySize / 2;
       // Q key
-      this.ctx.font = `bold ${spaceSize}px Verdana`;
-      this.ctx.fillText('Q', textX, yCenter - spaceSize * 2);
+      this.drawKey('Q', keyCenterX, yCenter - spaceSize * 1.75, keySize, Colors.planeBackground, Colors.black);
 
       // x: loc
       this.ctx.font = `${spaceSize}px Verdana`;
+      this.ctx.fillStyle = vertColor;
       this.ctx.fillText(vertText, textX, yCenter);
 
       // A key
-      this.ctx.font = `bold ${spaceSize}px Verdana`;
-      this.ctx.fillText('A', textX, yCenter + spaceSize * 2);
+      this.drawKey('A', keyCenterX, yCenter + spaceSize * 1.6, keySize, Colors.planeBackground, Colors.black);
       
       this.ctx.textBaseline = 'alphabetic'; // reset
+
+      const arrowSize = spaceSize * 0.75;
+      const arrowGap = spaceSize * 0.25;
+
+      // Up arrow above Q
+      const qKeyTop = (yCenter - spaceSize * 1.75) - keySize / 2;
+      const upArrowCenterY = qKeyTop - arrowGap - arrowSize / 2;
+      this.drawArrow(keyCenterX, upArrowCenterY, arrowSize, 'up', vertColor);
+
+      // Down arrow below A
+      const aKeyBottom = (yCenter + spaceSize * 1.6) + keySize / 2;
+      const downArrowCenterY = aKeyBottom + arrowGap + arrowSize / 2;
+      this.drawArrow(keyCenterX, downArrowCenterY, arrowSize, 'down', vertColor);
+
 
     } else {
       this.drawLines([verticle], vertColor, 2);

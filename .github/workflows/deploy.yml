@@ -29,3 +29,15 @@ jobs:
       with:
         name: n-dim-build
         path: dist/
+
+    - name: Deploy to Azure Storage
+      if: success()
+      uses: azure/cli@v1
+      with:
+        inlineScript: |
+          az storage blob upload-batch \
+            --account-name "finnminnstorage" \
+            --destination "$web/n-dim" \
+            --source dist/ \
+            --overwrite \
+            --connection-string "${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}"

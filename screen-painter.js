@@ -128,10 +128,10 @@ export class ScreenPainter {
       yEnd: plane.y + topMargin + spaceSize * this.spaces,
     };
 
-    this.drawLines([horizontal], horizColor, 1);
+    this.drawLines([horizontal], horizColor, 2);
 
     this.ctx.fillStyle = horizColor;
-    this.ctx.font = `${spaceSize * .75}px Verdana`;
+    this.ctx.font = `${spaceSize}px Verdana`;
     this.ctx.fillText(horizText, horizontal.xStart + spaceSize * 2, horizontal.yEnd - spaceSize/2);
 
     //  y axis
@@ -142,10 +142,10 @@ export class ScreenPainter {
       yEnd: plane.y + topMargin + spaceSize * (this.spaces / 2),
     };
 
-    this.drawLines([verticle], vertColor, 1);
+    this.drawLines([verticle], vertColor, 2);
 
     this.ctx.fillStyle = vertColor;
-    this.ctx.font = `${spaceSize * .75}px Verdana`;
+    this.ctx.font = `${spaceSize}px Verdana`;
     this.ctx.fillText(vertText, verticle.xEnd + spaceSize/2, verticle.yStart - spaceSize * 2.5);
   };
 
@@ -209,28 +209,38 @@ export class ScreenPainter {
       this.viewConfig.infoPanel.height
     );
 
-    const fpsStart = 20;
-    const coordsStart = fpsStart + 140;
-    const cursorStart = coordsStart + 200;
-    this.ctx.fillStyle = Colors.black;
-    this.ctx.font = `${(this.viewConfig.infoPanel.height - this.viewConfig.infoPanel.y) * .4}px Verdana`;
+    this.ctx.strokeStyle = Colors.gray;
+    this.ctx.lineWidth = 1;
+    this.ctx.beginPath();
+    this.ctx.moveTo(this.viewConfig.infoPanel.x, this.viewConfig.infoPanel.height);
+    this.ctx.lineTo(this.viewConfig.infoPanel.width, this.viewConfig.infoPanel.height);
+    this.ctx.stroke();
 
-    this.ctx.fillText(
-      `${this.state.infoPanel.fps} FPS`,
-      this.viewConfig.infoPanel.x + fpsStart,
-      this.viewConfig.infoPanel.y + (this.viewConfig.infoPanel.height / 2)
-    );
+    const padding = 20;
+    const rightSideStart = this.viewConfig.infoPanel.width - 400;
+    const coordsStart = padding;
+    const fpsStart = rightSideStart;
+    const cursorStart = rightSideStart + 140;
+
+    this.ctx.fillStyle = Colors.black;
+    this.ctx.font = `bold ${(this.viewConfig.infoPanel.height - this.viewConfig.infoPanel.y) * .5}px Arial`;
 
     this.ctx.fillText(
       `[ x: ${this.state.player.x}, y: ${this.state.player.y}, z: ${this.state.player.z}, w: ${this.state.player.w} ]`,
       this.viewConfig.infoPanel.x + coordsStart,
-      this.viewConfig.infoPanel.y + (this.viewConfig.infoPanel.height / 2)
+      this.viewConfig.infoPanel.y + (this.viewConfig.infoPanel.height / 2) + 5
+    );
+
+    this.ctx.fillText(
+      `${this.state.infoPanel.fps} FPS`,
+      this.viewConfig.infoPanel.x + fpsStart,
+      this.viewConfig.infoPanel.y + (this.viewConfig.infoPanel.height / 2) + 5
     );
 
     this.ctx.fillText(
       `cursor click: (x: ${this.state.infoPanel.mouseX}, y: ${this.state.infoPanel.mouseY})`,
       this.viewConfig.infoPanel.x + cursorStart,
-      this.viewConfig.infoPanel.y + (this.viewConfig.infoPanel.height / 2)
+      this.viewConfig.infoPanel.y + (this.viewConfig.infoPanel.height / 2) + 5
     );
   }
 

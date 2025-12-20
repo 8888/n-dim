@@ -161,10 +161,18 @@ export class ScreenPainter {
       this.ctx.moveTo(centerX, centerY - size / 2);
       this.ctx.lineTo(centerX + size / 2, centerY + size / 2);
       this.ctx.lineTo(centerX - size / 2, centerY + size / 2);
-    } else { // down
+    } else if (direction === 'down') {
       this.ctx.moveTo(centerX, centerY + size / 2);
       this.ctx.lineTo(centerX + size / 2, centerY - size / 2);
       this.ctx.lineTo(centerX - size / 2, centerY - size / 2);
+    } else if (direction === 'left') {
+      this.ctx.moveTo(centerX - size / 2, centerY);
+      this.ctx.lineTo(centerX + size / 2, centerY - size / 2);
+      this.ctx.lineTo(centerX + size / 2, centerY + size / 2);
+    } else { // right
+      this.ctx.moveTo(centerX + size / 2, centerY);
+      this.ctx.lineTo(centerX - size / 2, centerY - size / 2);
+      this.ctx.lineTo(centerX - size / 2, centerY + size / 2);
     }
     this.ctx.closePath();
     this.ctx.fill();
@@ -179,11 +187,14 @@ export class ScreenPainter {
       yEnd: plane.y + topMargin + spaceSize * this.spaces,
     };
 
-    this.drawLines([horizontal], horizColor, 2);
-
-    this.ctx.fillStyle = horizColor;
-    this.ctx.font = `${spaceSize}px Verdana`;
-    this.ctx.fillText(horizText, horizontal.xStart + spaceSize * 2, horizontal.yEnd - spaceSize/2);
+    if (plane.horzAxis === 'w' && plane.vertAxis === 'y') {
+      this._drawHorizontalAxisWithIndicators(plane, leftMargin, spaceSize, horizontal, horizColor, horizText, 'Z', 'C');
+    } else {
+      this.drawLines([horizontal], horizColor, 2);
+      this.ctx.fillStyle = horizColor;
+      this.ctx.font = `${spaceSize}px Verdana`;
+      this.ctx.fillText(horizText, horizontal.xStart + spaceSize * 2, horizontal.yEnd - spaceSize/2);
+    }
 
     //  y axis
     const verticle = {
@@ -250,6 +261,50 @@ export class ScreenPainter {
     const downKeyBottom = (yCenter + spaceSize * 1.75) + keySize / 2;
     const downArrowCenterY = downKeyBottom + arrowGap + arrowSize / 2;
     this.drawArrow(keyCenterX, downArrowCenterY, arrowSize, 'down', vertColor);
+  }
+
+  _drawHorizontalAxisWithIndicators(plane, leftMargin, spaceSize, horizontal, horizColor, horizText, leftKey, rightKey) {
+    const extendedXEnd = plane.x + plane.width - leftMargin;
+    const line = { ...horizontal, xEnd: extendedXEnd };
+    this.drawLines([line], horizColor, 2);
+
+    const xCenter = (line.xStart + line.xEnd) / 2;
+    const indicatorY = line.yStart - spaceSize * 1.5;
+
+    this.ctx.textAlign = 'center';
+    this.ctx.textBaseline = 'middle';
+
+    // axis text
+    this.ctx.font = `${spaceSize}px Verdana`;
+    this.ctx.fillStyle = horizColor;
+    this.ctx.fillText(horizText, xCenter, indicatorY);
+
+    const keySize = spaceSize * 1.5;
+    const keyAndTextSpacing = spaceSize * 2;
+
+    // Left key
+    const leftKeyCenterX = xCenter - keyAndTextSpacing;
+    this.drawKey(leftKey, leftKeyCenterX, indicatorY, keySize, Colors.planeBackground, Colors.black);
+
+    // Right key
+    const rightKeyCenterX = xCenter + keyAndTextSpacing;
+    this.drawKey(rightKey, rightKeyCenterX, indicatorY, keySize, Colors.planeBackground, Colors.black);
+    
+    this.ctx.textAlign = 'start';
+    this.ctx.textBaseline = 'alphabetic'; // reset
+
+    const arrowSize = spaceSize * 0.75;
+    const arrowGap = spaceSize * 0.25;
+
+    // Left arrow
+    const leftKeyLeft = leftKeyCenterX - keySize / 2;
+    const leftArrowCenterX = leftKeyLeft - arrowGap - arrowSize / 2;
+    this.drawArrow(leftArrowCenterX, indicatorY, arrowSize, 'left', horizColor);
+
+    // Right arrow
+    const rightKeyRight = rightKeyCenterX + keySize / 2;
+    const rightArrowCenterX = rightKeyRight + arrowGap + arrowSize / 2;
+    this.drawArrow(rightArrowCenterX, indicatorY, arrowSize, 'right', horizColor);
   }
 
   drawLines(lines, color, lineWidth) {

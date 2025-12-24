@@ -3,6 +3,7 @@ export const Colors = {
   gray:             '#CCCCCC',    // Light gray for grid lines
   player:           '#B0E0E6',    // A very light blue for the player
   goal:             '#32CD32',    // A vibrant green for the goal
+  goalDirection:    '#98FB98',    // A light green for the goal direction lines
   xAxis:            '#FF6347',    // A vibrant red for the x-axis helper axis
   yAxis:            '#32CD32',    // A vibrant green for the y-axis helper axis
   zAxis:            '#BA55D3',    // A vibrant purple for the z-axis helper axis

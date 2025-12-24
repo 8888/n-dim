@@ -381,6 +381,21 @@ export class ScreenPainter {
     );
   };
 
+  drawGoalDirectionLines(planeLayout, leftMargin, topMargin, spaceSize) {
+    const goalHorz = this.state.goal[planeLayout.horzAxis];
+    const goalVert = this.state.goal[planeLayout.vertAxis];
+
+    const x = planeLayout.x + leftMargin + (goalHorz * spaceSize) + (spaceSize / 2);
+    const y = planeLayout.y + topMargin + ((this.spaces - 1 - goalVert) * spaceSize) + (spaceSize / 2);
+
+    const lines = [
+      { xStart: x, yStart: planeLayout.y + topMargin, xEnd: x, yEnd: planeLayout.y + topMargin + (this.spaces * spaceSize) },
+      { xStart: planeLayout.x + leftMargin, yStart: y, xEnd: planeLayout.x + leftMargin + (this.spaces * spaceSize), yEnd: y },
+    ];
+
+    this.drawLines(lines, Colors.goalDirection, 1);
+  }
+
   drawInfoPanel() {
     this.ctx.fillStyle = Colors.infoPanel;
     this.ctx.fillRect(
@@ -448,8 +463,8 @@ export class ScreenPainter {
       `${planeLayout.vertAxis}: ${this.state.player[planeLayout.vertAxis]}`,
     );
 
-    // todo: we are passing the layout and then a prop from the layout 3 times
     this.drawGrid(planeLayout, leftMargin, topMargin, spaceSize);
+    this.drawGoalDirectionLines(planeLayout, leftMargin, topMargin, spaceSize);
 
     for (let vert = 0; vert < this.spaces; vert++) {
       for (let horz = 0; horz < this.spaces; horz++) {

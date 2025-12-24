@@ -41,7 +41,7 @@ jobs:
       with:
         inlineScript: |
           az storage blob upload-batch \
-            --account-name ${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }} \
+            --account-name "finnminnstorage" \
             --destination "\$web/n-dim" \
             --source dist/ \
             --overwrite \

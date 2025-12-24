@@ -2,6 +2,22 @@ import { ViewConfig } from './view-config.js';
 import { Colors } from './helpers.js'
 import { Events } from './event-bus.js';
 
+function interpolateColor(color1, color2, factor) {
+  const r1 = parseInt(color1.substring(1, 3), 16);
+  const g1 = parseInt(color1.substring(3, 5), 16);
+  const b1 = parseInt(color1.substring(5, 7), 16);
+
+  const r2 = parseInt(color2.substring(1, 3), 16);
+  const g2 = parseInt(color2.substring(3, 5), 16);
+  const b2 = parseInt(color2.substring(5, 7), 16);
+
+  const r = Math.round(r1 + factor * (r2 - r1));
+  const g = Math.round(g1 + factor * (g2 - g1));
+  const b = Math.round(b1 + factor * (b2 - b1));
+
+  return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+}
+
 export class ScreenPainter {
   constructor(state, map, spaces, dimensions, eventBus) {
     this.state = state;
@@ -29,12 +45,12 @@ export class ScreenPainter {
     this.map = map;
   }
 
-  render() {
+  render(nowTime) {
     this.ctx.fillStyle = Colors.screenBackground;
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
     this.drawInfoPanel();
-    this.viewConfig.allPlanes.forEach(plane => this.drawPlane(plane));
+    this.viewConfig.allPlanes.forEach(plane => this.drawPlane(plane, nowTime));
   }
 
   resizeCanvas() {
@@ -381,7 +397,7 @@ export class ScreenPainter {
     );
   };
 
-  drawGoalDirectionLines(planeLayout, leftMargin, topMargin, spaceSize) {
+  drawGoalDirectionLines(planeLayout, leftMargin, topMargin, spaceSize, nowTime) {
     const goalHorz = this.state.goal[planeLayout.horzAxis];
     const goalVert = this.state.goal[planeLayout.vertAxis];
 
@@ -393,7 +409,10 @@ export class ScreenPainter {
       { xStart: planeLayout.x + leftMargin, yStart: y, xEnd: planeLayout.x + leftMargin + (this.spaces * spaceSize), yEnd: y },
     ];
 
-    this.drawLines(lines, Colors.goalDirection, 1);
+    const pulseFactor = (Math.sin(nowTime / 400) + 1) / 2;
+    const color = interpolateColor(Colors.goalDirection, Colors.goalDirectionPulse, pulseFactor);
+
+    this.drawLines(lines, color, 3);
   }
 
   drawInfoPanel() {
@@ -447,7 +466,7 @@ export class ScreenPainter {
     );
   }
 
-  drawPlane(planeLayout) {
+  drawPlane(planeLayout, nowTime) {
     const leftMargin = planeLayout.spacing;
     const topMargin = planeLayout.spacing;
     const spaceSize = planeLayout.spacing;
@@ -464,7 +483,7 @@ export class ScreenPainter {
     );
 
     this.drawGrid(planeLayout, leftMargin, topMargin, spaceSize);
-    this.drawGoalDirectionLines(planeLayout, leftMargin, topMargin, spaceSize);
+    this.drawGoalDirectionLines(planeLayout, leftMargin, topMargin, spaceSize, nowTime);
 
     for (let vert = 0; vert < this.spaces; vert++) {
       for (let horz = 0; horz < this.spaces; horz++) {

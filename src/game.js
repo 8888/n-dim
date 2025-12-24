@@ -101,7 +101,7 @@ export class Game {
     }
   };
 
-  display() {
-    this.screenPainter.render();
+  display(nowTime) {
+    this.screenPainter.render(nowTime);
   }
 }

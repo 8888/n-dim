@@ -6,7 +6,7 @@ window.onload = () => {
   let mainLoopUpdateLast = performance.now();
   (function mainLoop(nowTime) {
     game.update(nowTime - mainLoopUpdateLast);
-    game.display();
+    game.display(nowTime);
     mainLoopUpdateLast = nowTime;
     requestAnimationFrame(mainLoop);
   })(performance.now());

@@ -56,5 +56,4 @@ jobs:
             --resource-group finnminn-rg \
             --profile-name finnminn-fd-profile \
             --name finnminn-site-hsfwgzehcqe2bdew.z02.azurefd.net \
-            --content-paths "/n-dim/*" \
-            --auth-mode login
+            --content-paths "/n-dim/*"

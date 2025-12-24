@@ -25,6 +25,10 @@ export class ScreenPainter {
     this.eventBus.subscribe(Events.inspectPoint, () => this.viewConfig.infoPanel.dirty = true);
   }
 
+  setMap(map) {
+    this.map = map;
+  }
+
   render() {
     this.ctx.fillStyle = Colors.screenBackground;
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
@@ -89,6 +93,25 @@ export class ScreenPainter {
       (spaceSize / 2) - 2,
       0,
       2 * Math.PI,
+    );
+    this.ctx.fill();
+    this.ctx.stroke();
+  };
+
+  drawGoal(plane, xLoc, yLoc, leftMargin, topMargin, spaceSize) {
+    // x = horizontal axis
+    // y = vertical axis
+    // actual view on canvas, not player n-dim location
+    // xLoc, yLoc are cell the player should be in from bottom left origin
+    this.ctx.fillStyle = Colors.goal;
+    this.ctx.strokeStyle = Colors.black;
+    this.ctx.lineWidth = 2;
+    this.ctx.beginPath();
+    this.ctx.rect(
+      plane.x + leftMargin + (spaceSize * xLoc) + 2,
+      plane.y + topMargin + (spaceSize * yLoc) + 2,
+      spaceSize - 4,
+      spaceSize - 4,
     );
     this.ctx.fill();
     this.ctx.stroke();
@@ -377,6 +400,7 @@ export class ScreenPainter {
     const padding = 20;
     const rightSideStart = this.viewConfig.infoPanel.width - 400;
     const coordsStart = padding;
+    const goalStart = padding + 300;
     const fpsStart = rightSideStart;
     const cursorStart = rightSideStart + 140;
 
@@ -384,8 +408,14 @@ export class ScreenPainter {
     this.ctx.font = `bold ${(this.viewConfig.infoPanel.height - this.viewConfig.infoPanel.y) * .5}px Arial`;
 
     this.ctx.fillText(
-      `[ x: ${this.state.player.x}, y: ${this.state.player.y}, z: ${this.state.player.z}, w: ${this.state.player.w} ]`,
+      `Player: [ x: ${this.state.player.x}, y: ${this.state.player.y}, z: ${this.state.player.z}, w: ${this.state.player.w} ]`,
       this.viewConfig.infoPanel.x + coordsStart,
+      this.viewConfig.infoPanel.y + (this.viewConfig.infoPanel.height / 2) + 5
+    );
+
+    this.ctx.fillText(
+      `Goal: [ x: ${this.state.goal.x}, y: ${this.state.goal.y}, z: ${this.state.goal.z}, w: ${this.state.goal.w} ]`,
+      this.viewConfig.infoPanel.x + goalStart,
       this.viewConfig.infoPanel.y + (this.viewConfig.infoPanel.height / 2) + 5
     );
 
@@ -442,9 +472,20 @@ export class ScreenPainter {
     // draw player
     // horizontal x Axis is correct with zero left
     // invert vertical y axis to have zero on bottom
-    const xLoc = this.state.player[planeLayout.horzAxis];
-    const yLoc = this.spaces - 1 - this.state.player[planeLayout.vertAxis];
-    this.drawPlayer(planeLayout, xLoc, yLoc, leftMargin, topMargin, spaceSize);
+    const playerXLoc = this.state.player[planeLayout.horzAxis];
+    const playerYLoc = this.spaces - 1 - this.state.player[planeLayout.vertAxis];
+    this.drawPlayer(planeLayout, playerXLoc, playerYLoc, leftMargin, topMargin, spaceSize);
+
+    // draw goal
+    const a = this.state.player[planeLayout.otherAxes[0]];
+    const b = this.state.player[planeLayout.otherAxes[1]];
+    const goalA = this.state.goal[planeLayout.otherAxes[0]];
+    const goalB = this.state.goal[planeLayout.otherAxes[1]];
+    if (a === goalA && b === goalB) {
+      const goalXLoc = this.state.goal[planeLayout.horzAxis];
+      const goalYLoc = this.spaces - 1 - this.state.goal[planeLayout.vertAxis];
+      this.drawGoal(planeLayout, goalXLoc, goalYLoc, leftMargin, topMargin, spaceSize);
+    }
 
     planeLayout.dirty = false;
   }

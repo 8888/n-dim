@@ -9,6 +9,9 @@ export class Game {
 
   constructor() {
     this.eventBus = new EventBus();
+    this.mapBuilder = new MapBuilder(this.spaces, this.dimensions);
+    const { map, goal } = this.mapBuilder.newMap();
+    this.map = map;
 
     this.state = {
       infoPanel: {
@@ -22,10 +25,9 @@ export class Game {
         z: Math.floor(this.spaces / 2),
         w: Math.floor(this.spaces / 2),
       },
+      goal: goal,
     };
 
-    const mapBuilder = new MapBuilder(this.spaces, this.dimensions);
-    this.map = mapBuilder.newMap();
     console.log(this.map);
 
     this.screenPainter = new ScreenPainter(this.state, this.map, this.spaces, this.dimensions, this.eventBus);
@@ -43,6 +45,26 @@ export class Game {
     return this.map.isSpaceInBounds(newSpace) && this.map.isSpaceOpen(newSpace);
   }
 
+  isGoalReached() {
+    return this.state.player.x === this.state.goal.x &&
+      this.state.player.y === this.state.goal.y &&
+      this.state.player.z === this.state.goal.z &&
+      this.state.player.w === this.state.goal.w;
+  }
+
+  reset() {
+    const { map, goal } = this.mapBuilder.newMap();
+    this.map = map;
+    this.state.goal = goal;
+    this.state.player = {
+      x: Math.floor(this.spaces / 2),
+      y: Math.floor(this.spaces / 2),
+      z: Math.floor(this.spaces / 2),
+      w: Math.floor(this.spaces / 2),
+    };
+    this.screenPainter.setMap(this.map);
+  }
+
   handleMoveRequest({dimension, distance}) {
     const newSpace = {...this.state.player};
     newSpace[dimension] += distance;
@@ -56,6 +78,10 @@ export class Game {
       });
 
       this.state.player[dimension] += distance;
+
+      if (this.isGoalReached()) {
+        this.reset();
+      }
     }
   }
 

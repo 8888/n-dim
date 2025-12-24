@@ -15,7 +15,53 @@ export class MapBuilder {
       const space = Math.random() >= wallPercent ? '#' : '.';
       fullMap.push(space);
     }
-    return new Map(fullMap, this.spaces);
+    const map = new Map(fullMap, this.spaces);
+
+    // set start point empty
+    const startPosition = {
+      x: Math.floor(this.spaces / 2),
+      y: Math.floor(this.spaces / 2),
+      z: Math.floor(this.spaces / 2),
+      w: Math.floor(this.spaces / 2),
+    };
+    map.full[map.getIndex(startPosition.x, startPosition.y, startPosition.z, startPosition.w)] = '.';
+
+    const goal = this.createGoal(map, startPosition);
+
+    return { map, goal };
+  }
+
+  createGoal(map, startPosition) {
+    const reachableEmptySpaces = this.findReachableEmptySpaces(map, startPosition);
+    if (reachableEmptySpaces.length === 0) {
+      // This should be rare, but if there are no reachable empty spaces,
+      // we can just return the start position as the goal.
+      return startPosition;
+    }
+    const goalIndex = Math.floor(Math.random() * reachableEmptySpaces.length);
+    return reachableEmptySpaces[goalIndex];
+  }
+
+  findReachableEmptySpaces(map, startPosition) {
+    const queue = [startPosition];
+    const visited = new Set([map.getIndex(startPosition.x, startPosition.y, startPosition.z, startPosition.w)]);
+    const reachable = [];
+
+    while(queue.length > 0) {
+      const currentPosition = queue.shift();
+      reachable.push(currentPosition);
+
+      const neighbors = map.getNeighbors(currentPosition);
+      for (const neighbor of neighbors) {
+        const neighborIndex = map.getIndex(neighbor.x, neighbor.y, neighbor.z, neighbor.w);
+        if (!visited.has(neighborIndex) && map.isSpaceOpen(neighbor)) {
+          visited.add(neighborIndex);
+          queue.push(neighbor);
+        }
+      }
+    }
+
+    return reachable;
   }
 }
 
@@ -44,6 +90,17 @@ class Map {
     return x + (y * this.spaces) + (z * this.spaces * this.spaces) + (w * this.spaces * this.spaces * this.spaces);
   }
 
+  getPosition(index) {
+    const w = Math.floor(index / (this.spaces * this.spaces * this.spaces));
+    index -= w * this.spaces * this.spaces * this.spaces;
+    const z = Math.floor(index / (this.spaces * this.spaces));
+    index -= z * this.spaces * this.spaces;
+    const y = Math.floor(index / this.spaces);
+    index -= y * this.spaces;
+    const x = index;
+    return {x, y, z, w};
+  }
+
   getSpaceContents(x, y, z, w) {
     return this.full[this.getIndex(x, y, z, w)];
   }
@@ -59,5 +116,28 @@ class Map {
 
   isSpaceOpen({x, y, z, w}) {
     return this.getSpaceContents(x, y, z, w) === '.';
+  }
+
+  getNeighbors({x, y, z, w}) {
+    const neighbors = [];
+    for (let dx = -1; dx <= 1; dx++) {
+      for (let dy = -1; dy <= 1; dy++) {
+        for (let dz = -1; dz <= 1; dz++) {
+          for (let dw = -1; dw <= 1; dw++) {
+            if (dx === 0 && dy === 0 && dz === 0 && dw === 0) {
+              continue;
+            }
+            if (Math.abs(dx) + Math.abs(dy) + Math.abs(dz) + Math.abs(dw) > 1) {
+              continue;
+            }
+            const neighbor = {x: x + dx, y: y + dy, z: z + dz, w: w + dw};
+            if (this.isSpaceInBounds(neighbor)) {
+              neighbors.push(neighbor);
+            }
+          }
+        }
+      }
+    }
+    return neighbors;
   }
 }

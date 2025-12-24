@@ -25,6 +25,7 @@ export class ViewConfig {
       spacing: 0,
       horzAxis: 'z',
       vertAxis: 'x',
+      otherAxes: ['y', 'w'],
       dirty: true,
     };
     this.xyPlane = {
@@ -35,6 +36,7 @@ export class ViewConfig {
       spacing: 0,
       horzAxis: 'x',
       vertAxis: 'y',
+      otherAxes: ['z', 'w'],
       dirty: true,
     };
     this.yzPlane = {
@@ -45,6 +47,7 @@ export class ViewConfig {
       spacing: 0,
       horzAxis: 'y',
       vertAxis: 'z',
+      otherAxes: ['x', 'w'],
       dirty: true,
     };
     this.wxPlane = {
@@ -55,6 +58,7 @@ export class ViewConfig {
       spacing: 0,
       horzAxis: 'w',
       vertAxis: 'x',
+      otherAxes: ['y', 'z'],
       dirty: true,
     };
     this.wyPlane = {
@@ -65,6 +69,7 @@ export class ViewConfig {
       spacing: 0,
       horzAxis: 'w',
       vertAxis: 'y',
+      otherAxes: ['x', 'z'],
       dirty: true,
     };
     this.wzPlane = {
@@ -75,6 +80,7 @@ export class ViewConfig {
       spacing: 0,
       horzAxis: 'w',
       vertAxis: 'z',
+      otherAxes: ['x', 'y'],
       dirty: true,
     };
 

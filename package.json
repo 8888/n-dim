@@ -6,7 +6,7 @@
   "main": "src/index.js",
   "scripts": {
     "build": "rollup -c",
-    "start": "python3 -m http.server 8000"
+    "start": "python3 -m http.server"
   },
   "keywords": [],
   "author": "",

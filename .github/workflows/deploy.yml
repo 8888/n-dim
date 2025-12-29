@@ -1,4 +1,4 @@
-name: Build and Deploy
+name: Azure Static Web Apps CI/CD
 
 on:
   push:
@@ -6,54 +6,38 @@ on:
       - main
 
 jobs:
-  build:
+  build_and_deploy_job:
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
     runs-on: ubuntu-latest
-
+    name: Build and Deploy Job
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+          lfs: false
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
 
-    - name: Install dependencies
-      run: npm ci
+      - name: Install dependencies
+        run: npm ci
 
-    - name: Build project
-      run: npm run build
+      - name: Build project
+        run: npm run build
 
-    - name: Upload production artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: n-dim-build
-        path: dist/
-
-    - name: Azure Login
-      uses: azure/login@v2
-      with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-    - name: Deploy to Azure Storage
-      if: success()
-      uses: azure/cli@v2
-      with:
-        inlineScript: |
-          az storage blob upload-batch \
-            --account-name "finnminnstorage" \
-            --destination "\$web/n-dim" \
-            --source dist/ \
-            --overwrite \
-            --auth-mode login
-
-    - name: Purge CDN endpoint
-      if: success()
-      uses: azure/cli@v2
-      with:
-        inlineScript: |
-          az cdn endpoint purge \
-            --resource-group finnminn-rg \
-            --profile-name finnminn-fd-profile \
-            --name finnminn-site-hsfwgzehcqe2bdew.z02.azurefd.net \
-            --content-paths "/n-dim/*"
+      - name: Build And Deploy
+        id: builddeploy
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_FINNMINN }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }} # Used for Github integrations (i.e. PR comments)
+          action: "upload"
+          ###### Repository/Build Configurations - These values can be configured to match your app requirements. ######
+          # For more information regarding Static Web App workflow configurations, please visit: https://aka.ms/swaworkflowconfig
+          app_location: "dist"
+          api_location: "" # Api source code path - optional
+          output_location: "" # Built app content directory - optional
+          app_artifact_location: "n-dim"
+          ###### End of Repository/Build Configurations ######
